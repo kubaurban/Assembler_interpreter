@@ -6,48 +6,50 @@
 int N = 9; /*odleglosc znaku '*' od nadanej w dyrektywie o postaci
 				... <liczba_komorek_pamieci>*INTEGER(<liczba_calkowita>) do liczby_calkowitej */
 int i, j, k;
-char word1[9];
-char word2[9] = { '0','0','0','0','0','0','0','0','\0' };
+char word[9];
+char word8[9] = { '0','0','0','0','0','0','0','0','\0' };
+char word4[5] = { '0','0','0','0','\0' };
 char emptyWord[9] = { '~', '~',  '~',  '~',  '~',  '~',  '~',  '~', '\0' };
 char* temp1;
+char* temp2;
 char buffer[255];
-char t1[255];
 
 
-char* into_hex(const char*);
+char* into_hex(const char*, int);
 void interpret_div(const char* div[]) {
-	strncat_s(t1, 255, div[2], 1); // wycina pierwszy znak z ostatniego segmentu instrukcji i zapisuje do t1
+	temp1 = strchr(div[2], 42); //zwraca wskaznik na pozycje gdzie znajduje sie znak '*' (kod ASCII = 42), lub wartosc NULL jesli nie wystepuje
 	if (strcmp(div[1], "DC") == 0)
 	{
-		if (!isdigit(*t1)) /* obsluga dyrektyw postaci ... DC INTEGER(<liczba_calkowita>) */
+		if (temp1 == NULL)		/* obsluga dyrektyw postaci ... DC INTEGER(<liczba_calkowita>) */
 		{
 			strncat_s(buffer, 255, div[2] + N - 1, strlen(div[2]) - N);
-			printf_s("%s\n", into_hex(buffer)); //tutaj zapisz do pliku 
+			printf_s("%s\n", into_hex(buffer, 8)); //tutaj zapisz do pliku 
 			memset(buffer, 0, 255 * sizeof(char));
 		}
-		else /* obsluga dyrektyw postaci ... DC <liczba_komorek_pamieci>*INTEGER(<liczba_calkowita>) */
+
+		else					/* obsluga dyrektyw postaci ... DC <liczba_komorek_pamieci>*INTEGER(<liczba_calkowita>) */
 		{
-			temp1 = strchr(div[2], 42); // zwraca wskaznik na pozycje gdzie znajduje sie znak '*' (kod ASCII = 42) 
 			strncat_s(buffer, 255, div[2], strlen(div[2]) - strlen(temp1)); // wycina fragment <liczba_komorek_pamieci> i zapisuje do buffer
 			k = atoi(buffer); // liczba k reprezentuje liczbe_komorek_pamieci
 			memset(buffer, 0, 255 * sizeof(char));
 			strncat_s(buffer, 255, (temp1 + N), strlen(temp1) - N - 1); /* wycina fragment <liczba_calkowita> i zapisuje do buffer*/
 			for (j = 0; j < k; j++) 
 			{
-				printf_s("%s\n", into_hex(buffer)); //tutaj zapisz do pliku
+				printf_s("%s\n", into_hex(buffer, 8)); //tutaj zapisz do pliku
 			}
 			memset(buffer, 0, 255 * sizeof(char));
 		}
 	}
+
 	else 
 	{
-		if (!isdigit(*t1)) /* obsluga dyrektyw postaci ... DS INTEGER */
+		if (temp1 == NULL)		/* obsluga dyrektyw postaci ... DS INTEGER */
 		{
 			printf_s("%s\n", emptyWord); //tutaj zapisz do pliku 
 		}
-		else /* obsluga dyrektyw postaci ... DS <liczba_komorek_pamieci>*INTEGER */
+
+		else					/* obsluga dyrektyw postaci ... DS <liczba_komorek_pamieci>*INTEGER */
 		{
-			temp1 = strchr(div[2], 42); // zwraca wskaznik na pozycje gdzie znajduje sie znak '*' (kod ASCII = 42) 
 			strncat_s(buffer, 255, div[2], strlen(div[2]) - strlen(temp1)); // wycina fragment <liczba_komorek_pamieci> i zapisuje do buffer
 			k = atoi(buffer); // liczba k reprezentuje liczbe_komorek_pamieci
 			memset(buffer, 0, 255 * sizeof(char));
@@ -57,20 +59,38 @@ void interpret_div(const char* div[]) {
 			}
 		}
 	}
-	memset(t1, 0, 255 * sizeof(char));
 }
 
 char* interpret_ord(char** ord) {
 	char* bin;
-	enum order_codes ord_code;
+	temp1 = strchr(ord[2], 44); //zwraca wskaznik na pozycje gdzie znajduje sie znak ',' (kod ASCII = 44), lub wartosc NULL jesli nie wystepuje
+	// tutaj nastapi nadanie do buffer kodu rozkazu
+	if (temp1 != NULL) // obsluga rozkazow arytmetycznych i zapisywania wartosci 
+	{
+		//strncat_s()
+		//if()
+	}
+
+	else // obsluga rozkazow skoku
+	{
+
+	}
 }
 
-char* into_hex(const char* dec)
+char* into_hex(const char* dec, int bit_amount) // zamienia ciag znakow zawierajacy decymalna liczbe na ciag znakow w reprezentujacy te liczbe heksadecymalnie
 {
-	sprintf_s(word1, 8, "%x", atoi(dec));
-	for (i = 0; i < strlen(word1); i++)
+	sprintf_s(word, bit_amount, "%x", atoi(dec));
+	if (bit_amount == 8)
 	{
-		word2[7 - i] = word1[strlen(word1) - i - 1];
+		temp2 = word8;
 	}
-	return word2;
+	else
+	{
+		temp2 = word4;
+	}
+	for (i = 0; i < strlen(word); i++)
+	{
+		temp2[bit_amount - 1 - i] = word[strlen(word) - i - 1];
+	}
+	return temp2;
 }
