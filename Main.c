@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#define DATASECTION_REGISTRY = "0000000f";
-#define ORDERSSECTION_REGISTRY = "0000000e";
 
 const char* div1[] = { "dziewiec",	"DC",	"INTEGER(4294967295)" };
 const char* div2[] = { "piec",		"DC",	"INTEGER(0)" };
@@ -14,27 +12,32 @@ const char* ord1[] = { "r1",	 "L",	"2,dziewiec" };
 const char* ord2[] = { "r2",	 "S",	"2,piec" };
 const char* ord3[] = { "r3",	 "S",	"2,trzy" };
 const char* ord4[] = { "r4",	 "ST",	"2,wynik" };
-const char* ord5[] = { "r5",	 "L",	"2,3" };
+const char* ord5[] = { "r5",	 "SR",	"2,2" };
 const char* ord6[] = { "r6",	 "JN",	"r1" };
 
-
-void interpret_div(const char*[]);
-void interpret_ord(const char*[]);
+void symulateMemory();
+void* getFromRegistry(int);
+void interpretDiv(const char*[]);
+void interpretOrd(const char*[]);
 main(int argc, char** argv)
 {
-	char* dsp; // data_section_pointer start
-	char* osp; // order_section_pointer start
+	symulateMemory();
 
-	interpret_div(div1);
-	interpret_div(div2);
-	interpret_div(div3);
-	interpret_div(div4);
-	interpret_div(div5);
-	interpret_div(div6);
+	interpretDiv(div1);
+	interpretDiv(div2);
+	interpretDiv(div3);
+	interpretDiv(div4);
+	interpretDiv(div5);
+	interpretDiv(div6);
 	printf("%s", "\n");
-	interpret_ord(ord5);
+
+	interpretOrd(ord5);
+	interpretOrd(ord5);
 
 	
-	printf("%s", "\n");
+	printf("%s", "\n\n");
+	
+	printf("Sekcja danych: %s\n", getFromRegistry(14));
+	printf("Sekcja sterujaca: %s\n", getFromRegistry(15));
 }
 
