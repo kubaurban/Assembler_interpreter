@@ -21,7 +21,6 @@
   <ItemGroup>
     <ClCompile Include="Main.c" />
     <ClCompile Include="Interpreter.c" />
-    <ClCompile Include="Order_codes.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
