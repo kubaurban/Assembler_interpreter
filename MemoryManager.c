@@ -76,6 +76,14 @@ union reg getFromRegistry(int which)
 {
 	return registry[which];
 }
+void setRegistryIval(long int val, int which)
+{
+	registry[which].ival = val;
+};
+void setRegistryPval(void* val, int which) 
+{
+	registry[which].pval = val;
+};
 char* getStringFromSection(char* cellsFromSectionAddressBegining, int dataLength)
 {
 	char* word;

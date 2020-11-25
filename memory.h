@@ -118,6 +118,14 @@ void storeInDirectiveSection(char**, char*);
 */
 union reg getFromRegistry(int);
 /**
+* Zapisuje dana liczbowa do i-tego rejestru.
+*/
+void setRegistryIval(long int, int);
+/**
+* Zapisuje wskaznik (adres) do i-tego rejestru.
+*/
+void setRegistryPval(void*, int);
+/**
 * Wyjmuje wartosc znajdujaca sie w podanej sekcji pod danym adresem, gdzie:
 Adres = adres poczatku danej sekcji + przesuniecie
 Ostatnim parametrem funkcji jest dlugosc (ilosc znakow) danej, ktora otrzymamy na wyjsciu.

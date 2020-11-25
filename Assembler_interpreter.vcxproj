@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Executer.c" />
     <ClCompile Include="IOManager.c" />
     <ClCompile Include="LabelsManager.c" />
     <ClCompile Include="Main.c" />

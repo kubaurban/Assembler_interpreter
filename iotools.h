@@ -10,7 +10,11 @@ FILE* getInput(FILE*, char*, int, char*[]);
 /**
 *Wczytuje kod z instrukcjami pseudoasemblera z podanego pliku wejsciowego i przekazuje odczytane komendy do interpretera.
 */
-void readCode(FILE*);
+void readPAInstructions(FILE*);
+/**
+*Wczytuje kod maszynowy z podanego pliku wejsciowego i zapisuje do odpowiednich sekcji.
+*/
+void readMachineCode(FILE* inputf);
 /**
 *Obsluguje blad zwiazany z blednym otwarciem pliku. Prosi uzytkownika o podanie sciezki wzglednej do pliku 
 z instrukcjami pseudoasemblera w przypadku bledu i zwraca ja jako ciag znakow.

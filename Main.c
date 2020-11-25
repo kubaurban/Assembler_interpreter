@@ -19,9 +19,8 @@ main(int argc, char* argv[])
 	if (source == NULL) exit(1);
 
 	fp = getInput(fp, source, argc, argv);
-
-	readCode(fp);
-
+	fclose(fp);
+	
 	fp = fopen(strcat(source, "_out.txt"), "w");
 	saveDataSection(fp);
 	saveDirectiveSection(fp);

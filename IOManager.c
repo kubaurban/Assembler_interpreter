@@ -5,53 +5,67 @@
 
 FILE* getInput(FILE* inputf, char* source, int argc, char* argv[])
 {
-	char* temp;
+	char temp[BYTE_LENGTH + 1];
+	char *token1, *token2, *line;
 
-	if (argc != 2)						// nie podano sciezki wzglednej do pliku z instrukcjami pseudoasemblera
+	if (argc < 2)						// nie podano sciezki wzglednej do pliku z instrukcjami pseudoasemblera (brak argumentów)
 	{
-		temp = malloc((BYTE_LENGTH + 1) * sizeof(char));
-		printf("Podaj sciezke wzgledna do pliku tekstowego z instrukcjami dla interpretera pseudoasemblera:\n");
-		scanf("%s", temp);
+		token1 = NULL;
+		while (token1 == NULL) {
+			printf("Podaj sciezke wzgledna do pliku tekstowego oraz typ tego pliku:\n");
+			fgets(temp, (MAX_LINE_LENGTH + 1) * sizeof(char), stdin);
+			token1 = strtok(temp, " \r\n\t");
+		}
 
-		if (temp != NULL)
-		{
-			inputf = fopen(temp, "r");
-			strncpy(source, temp, strlen(temp) - 4); // wycina nazwe pliku zrodlowego bez .txt
-			free(temp);
-		}
-		else
-		{
-			inputf = NULL;
-		}
+		inputf = fopen(token1, "r");
+		strncpy(source, token1, strlen(token1) - 4);	// wycina nazwe pliku zrodlowego bez .txt
+		token1 = strtok(NULL, " \r\n\t");			// wycina drugi argument (o ile zostal podany, jesli nie, pozostaje NULLem)
 	}
 	else
 	{
 		inputf = fopen(argv[1], "r");	// wskazanie na plik tekstowy z instrukcjami pseudoasemblera podany jako argument przy wywolaniu programu
+		strncpy(source, argv[1], strlen(argv[1]) - 4); // wycina nazwe pliku zrodlowego bez .txt
+		token1 = NULL;
+		if (argc == 3)
+			token1 = argv[2];
 	}
 
 	while (inputf == NULL) {
-		temp = handleFileOpenError();
-		inputf = fopen(temp, "r");
-		strncpy(source, temp, strlen(temp) - 4); // wycina nazwe pliku zrodlowego bez .txt
-		free(temp);
+		line = handleFileOpenError();
+		token2 = strtok(line, " \r\n\t");
+		inputf = fopen(token2, "r");
+		strncpy(source, token2, strlen(token2) - 4); // wycina nazwe pliku zrodlowego bez .txt
+		free(line);
+	}
+
+
+	if (token1 != NULL && strcmp(token1, "msck_code") == 0)
+	{
+		readMachineCode(inputf);
+	}
+	else
+	{
+		readPAInstructions(inputf);
 	}
 
 	return inputf;
 }
-void readCode(FILE* inputf)
+void readPAInstructions(FILE* inputf)
 {
 	char line[MAX_LINE_LENGTH + 1];
 	char label[MAX_LABEL_LENGTH + 1];
 	char sign[MAX_SIGN_LENGTH + 1];
 	char arguments[MAX_LINE_LENGTH - 15 + 1];	// 15 znakow jest zarezerwowanych na etykiete i kod rozkazu, od 16 kolumny podawane sa argumenty
-	char* token1, * token2, * token3;
+	char* token1;
+	char* token2;
+	char* token3;
 
 	while (!readLineAndCheck(line, inputf))		// pobiera dyrektywy i je realizuje
 	{
 		token1 = strtok(line, " \r\n\t");
 		token2 = strtok(NULL, " \r\n\t");
 		token3 = strtok(NULL, " \r\n\t");
-
+		
 		if (token3 == NULL) {						// dyrektywa bez etykiety
 			strcpy(sign, token1);
 			strcpy(arguments, token2);
@@ -73,12 +87,40 @@ void readCode(FILE* inputf)
 	while (!readLineAndCheck(line, inputf))		// pobiera rozkazy i je realizuje
 	{
 		sscanf(line, "%10[ a-zA-Z0-9_] %[A-Z] %255[ a-zA-Z0-9_,()]\n", label, sign, arguments);
-		if (isdigit(*label)) exit(1);			// jest to etykieta niezgodna z zalozeniami (zaczyna sie od cyfry)
+		if (isdigit(*label)) exit(1);				// jest to etykieta niezgodna z zalozeniami (zaczyna sie od cyfry)
 		interpretOrd(label, sign, arguments);
 		memset(line, 0, (MAX_LINE_LENGTH + 1) * sizeof(char));
 	}
+}
+void readMachineCode(FILE* inputf)
+{
+	char line[MAX_LINE_LENGTH + 1];
+	char* token;
 
-	fclose(inputf);
+
+	while (!readLineAndCheck(line, inputf))		// pobiera kod maszynowy i zapisuje go w sekcji danych
+	{
+		token = strtok(line, " \r\n\t");
+
+		while (token)
+		{
+			storeInDataSection(&dataSection, token);
+			token = strtok(NULL, " \r\n\t");
+		}
+		memset(line, 0, (MAX_LINE_LENGTH + 1) * sizeof(char));
+	}
+
+	while (!readLineAndCheck(line, inputf))		// pobiera kod maszynowy i zapisuje go w sekcji rozkazow
+	{
+		token = strtok(line, " \r\n\t");
+
+		while (token)
+		{
+			storeInDataSection(&directiveSection, token);
+			token = strtok(NULL, " \r\n\t");
+		}
+		memset(line, 0, (MAX_LINE_LENGTH + 1) * sizeof(char));
+	}
 }
 char* handleFileOpenError()
 {
@@ -87,8 +129,8 @@ char* handleFileOpenError()
 	arg = malloc((MAX_LINE_LENGTH + 1) * sizeof(char));
 	if (arg == NULL) exit(1);
 
-	printf("Blad odczytu!\nPodaj sciezke wzgledna do pliku tekstowego z instrukcjami dla interpretera pseudoasemblera:\n");
-	scanf("%s", arg);
+	printf("Blad odczytu!\nPodaj sciezke wzgledna do pliku tekstowego:\n");
+	fgets(arg, (MAX_LINE_LENGTH + 1) * sizeof(char), stdin);
 	return arg;
 }
 int readLineAndCheck(char* buff, FILE* inputf)
@@ -102,7 +144,7 @@ int readLineAndCheck(char* buff, FILE* inputf)
 		if (!feof(inputf)) exit(1);										// blad w przypadku gdy inputf == NULL, ale nie doszedl do konca pliku
 		return 1;														// inputf == NULL poniewaz zakonczyl poprawnie odczyt z calego pliku
 	}
-	if (strcmp(result, "\n") == 0)										// zostala odczytana pusta linia (\n)
+	if (strcmp(result, "\n") == 0 )										// zostala odczytana pusta linia (\n)
 		return 1;
 	if (strcmp(result, "\r\n") == 0)									// zostala odczytana pusta linia (\r\n)
 		return 1;
