@@ -1,43 +1,35 @@
-#include <stdio.h>
-#include <string.h>
+#include "stdtools.h"
+#include "interpreter.h"
+#include "memory.h"
 
-const char* div1[] = { "dziewiec",	"DC",	"INTEGER(4294967295)" };
-const char* div2[] = { "piec",		"DC",	"INTEGER(0)" };
-const char* div3[] = { "trzy",		"DC",	"INTEGER(3)" };
-const char* div4[] = { "wektor",	"DC",	"15*INTEGER(4294967295)" };
-const char* div5[] = { "wynik",		"DS",	"INTEGER" };
-const char* div6[] = { "wynik_wek",	"DS",	"5*INTEGER" };
+		//					PROJEKT POSIADA PE£N¥ DOKUMENTACJÊ FUNKCJI ORAZ WYJAŒNIENIE U¯YWANYCH STA£YCH					\\
+	//		ABY ODCZYTAÆ INFORMACJÊ NA TEMAT KTÓREGOŒ Z POWY¯SZYCH, PROSZÊ NAJECHAÆ KURSOREM NA JEGO WYST¥PIENIE W KODZIE.		\\
+//						 WYŒWIETI SIÊ WÓWCZAS OKIENKO Z DEKLARACJ¥, A TU¯ NAD NI¥ OPIS, O ILE ZOSTA£ ON DODANY						\\
 
-const char* ord1[] = { "r1",	 "L",	"2,dziewiec" };
-const char* ord2[] = { "r2",	 "S",	"2,piec" };
-const char* ord3[] = { "r3",	 "S",	"2,trzy" };
-const char* ord4[] = { "r4",	 "ST",	"2,wynik" };
-const char* ord5[] = { "r5",	 "SR",	"2,2" };
-const char* ord6[] = { "r6",	 "JN",	"r1" };
-
-void symulateMemory();
-void* getFromRegistry(int);
-void interpretDiv(const char*[]);
-void interpretOrd(const char*[]);
-main(int argc, char** argv)
+main(int argc, char* argv[])
 {
+	FILE* fp;
+	char* source;
+
 	symulateMemory();
 
-	interpretDiv(div1);
-	interpretDiv(div2);
-	interpretDiv(div3);
-	interpretDiv(div4);
-	interpretDiv(div5);
-	interpretDiv(div6);
-	printf("%s", "\n");
+	fp = malloc(sizeof(FILE));
+	if (fp == NULL) exit(1);
+	source = calloc((BYTE_LENGTH + 5), sizeof(char));
+	if (source == NULL) exit(1);
 
-	interpretOrd(ord5);
-	interpretOrd(ord5);
+	fp = getInput(fp, source, argc, argv);
 
-	
-	printf("%s", "\n\n");
-	
-	printf("Sekcja danych: %s\n", getFromRegistry(14));
-	printf("Sekcja sterujaca: %s\n", getFromRegistry(15));
+	readCode(fp);
+
+	fp = fopen(strcat(source, "_out.txt"), "w");
+	saveDataSection(fp);
+	saveDirectiveSection(fp);
+	fclose(fp);
+
+	freeMemory();
+	free(source);
+	free(fp);
+
+	return 0;
 }
-

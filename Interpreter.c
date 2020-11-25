@@ -1,281 +1,379 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-					// PROJEKT POSIADA PE£N¥ DOKUMENTACJÊ FUNKCJI ORAZ WYJAŒNIENIE NIEKTÓRYCH U¯YWANYCH ZMIENNYCH \\
-		// ABY ODCZYTAÆ INFORMACJÊ NA TEMAT KTÓREGOŒ Z POWY¯SZYCH, NALE¯Y NAJECHAÆ KURSOREM NA KTÓREŒ Z JEGO WYST¥PIEÑ W KODZIE \\
+#include "stdtools.h"
+#include "interpreter.h"
+#include "memory.h"
+#include "labelcom.h"
+/**
+*Dlugosc slowa INTEGER.
+*/
+#define N 7
 
-char* directiveSection;
-char* dataSection;
-void* registry[] = { 
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
-static long long dataSectionCellsTaken = 0;
-static long long directiveSectionCellsTaken = 0;
-static long long maxDataSectionCellsToTake = 255;
-static long long maxDirectiveSectionCellsToTake = 255;
 
 /**
-* Odleglosc znaku '*' od nadanej w dyrektywie o postaci
-... <liczba_komorek_pamieci>*INTEGER(<liczba_calkowita>) do liczby_calkowitej 
+Tablica List to tabela par znak_rozkazu - kod_rozkazu uzupelniona dla kazdego rozkazu.
 */
-int N = 9; 
-int i, j, k;
-char z;
-char word[9];
-char emptyWord8[9] = { '~', '~',  '~',  '~',  '~',  '~',  '~',  '~', '\0' };
-char* temp1;
-char* temp2;
-char buffer[255];
-char buffer2[255];
-struct ordCode 
-{
-	char* sign;
-	char* code;
-} List[] = {
+struct ordCode List[] = {
 	"AR",	"10",
-	"A",	"d1",
+	"A",	"D1",
 	"SR",	"12",
-	"S",	"d3",
-	"MR",	"14", 
-	"M",	"d5", 
+	"S",	"D3",
+	"MR",	"14",
+	"M",	"D5",
 	"DR",	"16",
-	"D",	"d7",
+	"D",	"D7",
 	"CR",	"18",
-	"C",	"d9",
-	"J",	"e0",
-	"JZ",	"e1", 
-	"JP",	"e2", 
-	"JN",	"e3",
-	"L",	"f0",
-	"LR",	"f1",
-	"LA",	"f2",
-	"ST",	"f3",
+	"C",	"D9",
+	"J",	"E0",
+	"JZ",	"E1",
+	"JP",	"E2",
+	"JN",	"E3",
+	"L",	"F0",
+	"LR",	"31",
+	"LA",	"F2",
+	"ST",	"F3",
 };
-struct ordCode* ptr;
 
-/**
-* Symuluje pamiec operacyjna komputera: 
--> alokuje pamiec dla sekcji danych i sekcji sterujacej
--> wpisuje do rejestru 14 adres poczatku sekcji danych 
--> wpisuje do rejestru 15 adres poczatku sekcji sterujacej
-*/
-void symulateMemory();
-/**
-* Re-alokuje wiecej pamieci (o 255 znakow) na sekcje danych w razie przepelnienia.
-*/
-void reallocDataSection();
-/**
-* Re-alokuje wiecej pamieci (o 255 znakow) na sekcje sterujaca w razie przepelnienia.
-*/
-void reallocDirectiveSection();
-/**
-* Zapisuje do sekcji danych nowa wartosc. 
-Adres i-tego elementu w sekcji = adres poczatku sekcji + i-te przesuniecie
-*/
-void storeInDataSection(const char*);
-/**
-* Zapisuje do sekcji sterujacej nowa wartosc.
-Adres i-tego elementu w sekcji = adres poczatku sekcji + i-te przesuniecie
-*/
-void storeInDirectiveSection(const char*);
-/**
-* Wyjmuje wartosc znajdujaca sie w i-tym rejestrze.
-*/
-void* getFromRegistry(int);
-/**
-* Interpretuje dyrektywe rezerwacji pamieci z jezyka pseudoassemblera na kod maszynowy.
-***NARAZIE BEZ ETYKIET***
-*/
-void interpretDiv(const char* div[]);
-/**
-* Interpretuje rozkaz (operacji arytmetycznej, przesylania danych lub skoku) 
-z jezyka pseudoassemblera na kod maszynowy.
-***NARAZIE BEZ ETYKIET***
-***TYLKO REJESTR_REJESTR ORAZ KODY ROZKAZU***
-*/
-void interpretOrd(const char* ord[]);
-/**
-* Nadaje rozkazowi kod rozkazu. Przyporz¹dkowanie rozkazu do jego kodu znajduje sie w strukturze ordCode,
-a zbior wszystkich tych przyporzadkowan znajduje sie w tablicy List.
-*/
-void giveOrdCode(const char*);
-/**
-* Zamienia ciag znakow zawierajacy liczbe decymalna 
-na ciag znakow reprezentujacy te liczbe heksadecymalnie.
-*/
-char* intoHex(const char*, int);
-
-void symulateMemory()
+void storeInDataSection(char** dest, char* val)
 {
-	dataSection = calloc(255, sizeof(char));
-	directiveSection = calloc(255, sizeof(char));
-	registry[14] = dataSection;
-	registry[15] = directiveSection;
-}
-void reallocDataSection() 
-{
-	maxDataSectionCellsToTake += 255;
-	registry[14] = realloc(registry[14], (size_t)maxDataSectionCellsToTake);
-	printf("DataMemory has been successfully reallocated to %lld\n", maxDataSectionCellsToTake);
-}
-void reallocDirectiveSection()
-{
-	maxDirectiveSectionCellsToTake += 255;
-	registry[15] = realloc(registry[15], (size_t)maxDirectiveSectionCellsToTake);
-	printf("DataMemory has been successfully reallocated to %lld\n", maxDirectiveSectionCellsToTake);
-}
-void storeInDataSection(const char* val)
-{
-	i = strlen(val);
-	if (dataSectionCellsTaken >= maxDataSectionCellsToTake) 
-	{
+	unsigned int j;
+	
+	j = strlen(val);														// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
+	if (strlen((char*)getFromRegistry(15).pval) + j >= maxDataSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
 		reallocDataSection();
-		storeInDataSection(val);
-	}
-	else
-	{
-		strcat_s(dataSection, 9, val);
-		dataSection += i;
-		dataSectionCellsTaken += i;
-	}
+	strcat(*dest, val);											// wlasciwe dodanie wartosci argumentu val do sekcji danych
+	*dest += j;													// przesuniecie wskaznika na nastepny wolny adres w sekcji
 }
-void storeInDirectiveSection(const char* val)
+void storeInDirectiveSection(char** dest, char* val)
 {
-	i = strlen(val);
-	if (directiveSectionCellsTaken >= maxDirectiveSectionCellsToTake)
-	{
+	unsigned int j;
+
+	j = strlen(val);														// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
+	if (strlen((char*)getFromRegistry(14).pval) + j >= maxDirectiveSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
 		reallocDirectiveSection();
-		storeInDirectiveSection(val);
-	}
-	else
-	{
-		strcat_s(directiveSection, 9, val);
-		directiveSection += i;
-		directiveSectionCellsTaken += i;
-	}
+	strcat(*dest, val);											// wlasciwe dodanie kodu rozkazu w argumentu val do sekcji rozkazow
+	*dest += j;													// przesuniecie wskaznika na nastepny wolny adres w sekcji
 }
-
-void* getFromRegistry(int which)
+void interpretDiv(char divLabel[], char* divSign, char* divArgs) 
 {
-	return registry[which];
-}
-void interpretDiv(const char* div[]) {
-	temp1 = strchr(div[2], 42); //zwraca wskaznik na pozycje gdzie znajduje sie znak '*' (kod ASCII = 42), lub wartosc NULL jesli nie wystepuje
-	if (temp1 == NULL)
-	{
-		if (strcmp(div[1], "DC") == 0)		/* obsluga dyrektyw postaci ... DC INTEGER(<liczba_calkowita>) */
-		{
-			strncat_s(buffer, 255, div[2] + N - 1, strlen(div[2]) - N); // wycina fragment <liczba_calkowita> do buffer
-			temp2 = intoHex(buffer, 8);
-			storeInDataSection(temp2);
-			printf_s("%s\n", temp2);			//tutaj bedzie zapis do pliku
-			memset(buffer, 0, 255 * sizeof(char)); // czysci tablice buffer
-		}
-		else					/* obsluga dyrektyw postaci ... DS INTEGER */
-		{
-			storeInDataSection(emptyWord8);
-			printf_s("%s\n", emptyWord8);		//tutaj bedzie zapis do pliku
-		}
-	}
-	else 
-	{
-		strncat_s(buffer, 255, div[2], strlen(div[2]) - strlen(temp1)); // wycina fragment <liczba_komorek_pamieci> do buffer
-		k = atoi(buffer); // liczba k reprezentuje liczbe_komorek_pamieci
-		memset(buffer, 0, 255 * sizeof(char));
+	unsigned int i, k;
+	/*
+	* buffer2 to bufor roboczy uzywany tam, gdzie wczytywany do niego string nie wymaga wiecej niz MAX_LABEL_LENGTH (10) znakow.
+	* Wykorzystuje go przede wszystkim, aby wyciac odpowiedni krotszy napis z dluzszego napisu.
+	*/
+	char buffer2[MAX_LABEL_LENGTH + 1];  
+	char* hex;
+	char* temp1;
+	/*
+	* Wypelniona ~ tablica emptyWord reprezentuje zarezerwowana przez dyrektywe DS pamiec 4 bajtow.
+	*/
+	char emptyWord8[] = { '~', '~',  '~',  '~',  '~',  '~',  '~',  '~', '\0' }; 
 
-		if (strcmp(div[1], "DC") == 0)		/* obsluga dyrektyw postaci ... DC <liczba_komorek_pamieci>*INTEGER(<liczba_calkowita>) */
+	if (strcmp(divLabel, "") != 0)		//jesli dyrektywa posiada etykiete to zapisuje ja wraz z adresem jaki reprezentuje
+		saveLabelAsAddress(divLabel, 15, (unsigned short)strlen((char*)getFromRegistry(15).pval)/2, "");
+
+	temp1 = strchr(divArgs, 42);		//zwraca wskaznik na pozycje gdzie znajduje sie znak '*' (kod ASCII = 42) lub wartosc NULL jesli nie wystepuje
+	
+	memset(buffer2, 0, MAX_LABEL_LENGTH + 1);
+	if (temp1 == NULL)	// na podstawie informacji, czy w argumencie dyrektywy znajduje sie znak '*' mozemy obsluge dyrektyw podzielic na dwa bloki:
+	{					
+						// 1 BLOK
+
+		if (strcmp(divSign, "DC") == 0)		// OBSLUGA DYREKTYW POSTACI: <etykieta> DC INTEGER(<liczba_calkowita>)
 		{
-			strncat_s(buffer, 255, (temp1 + N), strlen(temp1) - N - 1); /* wycina fragment <liczba_calkowita> do buffer*/
-			for (j = 0; j < k; j++)
-			{
-				temp2 = intoHex(buffer, 8);
-				storeInDataSection(temp2);
-				printf_s("%s\n", temp2);		//tutaj bedzie zapis do pliku
-			}
-			memset(buffer, 0, 255 * sizeof(char));
+			if (strchr(divArgs, 41) == NULL) exit(1);					// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+
+			strncat(buffer2, divArgs + N + 1, strlen(divArgs) - N - 2); // wycina fragment <liczba_calkowita> do buffer2
+
+			hex = intoHex(buffer2, 8);
+			storeInDataSection(&dataSection, hex);
+			free(hex);
 		}
-		else					/* obsluga dyrektyw postaci ... DS <liczba_komorek_pamieci>*INTEGER */
+
+		else								// OBSLUGA DYREKTYW POSTACI: <etykieta> DS INTEGER
 		{
-			for (j = 0; j < k; j++)
+			storeInDataSection(&dataSection, emptyWord8);
+		}
+	}
+
+
+	else				// 2 BLOK
+	{
+		strncat(buffer2, divArgs, strlen(divArgs) - strlen(temp1)); // wycina fragment <liczba_komorek_pamieci> do buffer2
+		k = atoi(buffer2);
+		memset(buffer2, 0, (MAX_LABEL_LENGTH + 1) * sizeof(char));
+
+
+		if (strcmp(divSign, "DC") == 0)		// OBSLUGA DYREKTYW POSTACI: <etykieta> DC <liczba_komorek_pamieci>*INTEGER(<liczba_calkowita>)
+		{
+			if (strchr(divArgs, 41) == NULL) exit(1);				// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+
+			strncat(buffer2, temp1 + N + 2, strlen(temp1) - N - 3);	// wycina fragment <liczba_calkowita> do buffer2
+
+			for (i = 0; i < k; i++)
 			{
-				storeInDataSection(emptyWord8);
-				printf_s("%s\n", emptyWord8);	//tutaj bedzie zapis do pliku
+				hex = intoHex(buffer2, 8);
+				storeInDataSection(&dataSection, hex);
+				free(hex);
+			}
+		}
+
+		else								// OBSLUGA DYREKTYW POSTACI: <etykieta> DS <liczba_komorek_pamieci>*INTEGER
+		{
+			for (i = 0; i < k; i++)
+			{
+				storeInDataSection(&dataSection, emptyWord8);
 			}
 		}
 	}
 }
-void interpretOrd(const char* ord[]) {
-	giveOrdCode(ord[1]);		// nadanie do buffer kodu rozkazu
-	temp1 = strchr(ord[2], 44); //zwraca wskaznik na pozycje gdzie znajduje sie znak ',' (kod ASCII = 44), lub wartosc NULL jesli nie wystepuje					
-	temp2 = ord[2];
-	if (temp1 != NULL) // obsluga rozkazow arytmetycznych i zapisywania wartosci 
-	{
-		if (strlen(ord[1]) == 2 && *(ord[1] + 1) == 'R') // obsluga rozkazow typu rejestr - rejestr
+void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs) 
+{
+	unsigned int i;
+	/**
+	* buffer to najwazniejszy bufor w programie, przechowuje (najpierw) kolejne skladowe kodu maszynowego rozkazu 
+	* (aby koncowo przechowywac caly kod maszynowy rozkazu) przed zapisaniem go w odpowiedniej sekcji oraz wczytaniem 
+	* do pliku wynikowego.
+	*/
+	char buffer[MAX_CODE_LENGTH + 1];
+	/**
+	* buffer2 to bufor roboczy uzywany tam, gdzie wczytywany do niego string nie wymaga wiecej niz MAX_LABEL_LENGTH (10) znakow.
+	* Wykorzystuje go przede wszystkim, aby wyciac odpowiedni krotszy napis z dluzszego napisu.
+	*/
+	char buffer2[MAX_LABEL_LENGTH + 1];
+	char* hex;
+	char* temp1;
+	char* temp2;
+	struct labelledCommand* ptr;
+
+	ordLabel = deleteSpaces(ordLabel);
+	ordArgs = deleteSpaces(ordArgs);
+	
+	memset(buffer, 0, MAX_CODE_LENGTH + 1);
+	giveOrdCode(buffer, ordSign);
+	
+	temp1 = strchr(ordArgs, 44);		//zwraca wskaznik na pozycje gdzie znajduje sie znak ',' (kod ASCII = 44) lub wartosc NULL jesli nie wystepuje					
+	temp2 = ordArgs;
+
+	if (temp1 != NULL)		// na podstawie informacji, czy w argumentach rozkazu znajduje sie znak ',' mozemy obsluge rozkazow podzielic na dwa bloki:
+	{						
+							// 1 BLOK: OBSLUGA ROZKAZOW ARYTMETYCZNYCH I ZAPISYWANIA WARTOSCI
+							 
+		if (strcmp(ordLabel, "") != 0)						// jesli rozkaz posiada etykiete to zapisuje ja wraz z adresem jaki reprezentuje
+			saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14).pval)/2, "");
+
+		for (i = 0; temp2 != temp1; i++)					// wyodrêbnienie numeru pierwszego rejestru
 		{
-			for (i = 0; *temp2 != ','; i++)
+			buffer2[i] = *temp2;
+			temp2++;
+		}
+		hex = intoHex(buffer2, 1);
+		strcat(buffer, hex);								// zapis wyodrebnionego rejestru nr 1 do buffer
+		free(hex);
+		memset(buffer2, 0, (MAX_LABEL_LENGTH + 1) * sizeof(char));
+		
+		temp2++;
+		for (i = 0; *temp2 != '\0' && *temp2 != '('; i++)	// wyodrêbnienie do buffer2: drugiego REJESTRU ( format rejestr,REJESTR ),
+		{													// ETYKIETY ( format rejestr,ETYKIETA ) lub PRZESUNIECIA ( format rejestr,PRZESUNIECIE(rejestr) )
+			buffer2[i] = *temp2;
+			temp2++;
+		}						
+								
+
+		if (strlen(ordSign) == 2	// OBSLUGA ROZKAZOW TYPU REJESTR - REJESTR
+			&& *(ordSign + 1) == 'R')
+		{
+			hex = intoHex(buffer2, 1);
+			strcat(buffer, hex);							// zapis wyodrebnionego rejestru nr 2 do buffer
+			free(hex);
+		}
+
+		else						// OBSLUGA ROZKAZOW TYPU REJESTR - PAMIEC
+		{
+			if (isdigit(*(temp1 + 1)))		// a). pamiec podawana w rozkazie jest w formacie PRZESUNIECIE(NR_REJESTRU) - etykieta nie moze zaczynac sie liczba
 			{
-				buffer2[i] = *temp2;
+				if (strchr(ordArgs, 41) == NULL) exit(1);	// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+
+				if (strchr(ordArgs, 40) == NULL) exit(1);	// jesli nie otwarto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+
+				temp1 = calloc((MAX_BIAS_LENGTH + 1), sizeof(char));
+				if (temp1 == NULL) exit(1);
+
+				strcpy(temp1, buffer2);						// temp1 wskazuje na wyodrebnione z rozkazu PRZESUNIECIE
+				memset(buffer2, 0, (MAX_LABEL_LENGTH + 1) * sizeof(char));
+
 				temp2++;
+				for (i = 0; isdigit(*temp2); i++)			// wyodrebnienie NR_REJESTRU do buffer2
+				{
+					buffer2[i] = *temp2;
+					temp2++;
+				}
+
+				hex = intoHex(buffer2, 1);
+				strcat(buffer, hex);						// zapis NR_REJESTRU do buffer
+				free(hex);
+
+				hex = intoHex(temp1, 4);
+				strcat(buffer, hex);						// zapis PRZESUNIECIE do buffer
+				free(hex);
 			}
-			strcat_s(buffer, 4, intoHex(buffer2, 1)); // wyodrêbnienie pierwszego rejestru do buffer
-			memset(buffer2, 0, 255 * sizeof(char)); 
+			else							// b). pamiec podawana w rozkazie jest w postaci ETYKIETY
+			{
+				ptr = searchForLabel(buffer2);
+				if (ptr == NULL) exit(1);
+
+				temp1 = calloc((MAX_BIAS_LENGTH + 1), sizeof(char));
+				if (temp1 == NULL) exit(1);
+
+				sprintf(temp1, "%hu", getRegFromLabel(ptr));			// temp1 wskazuje na powiazany z etykieta NR_REJESTRU
+
+				hex = intoHex(temp1, 1);
+				strcat(buffer, hex);									// zapis NR_REJESTRU do buffer
+				free(hex);
+
+				sprintf(temp1, "%hu", getBiasFromLabel(ptr));			// temp1 wskazuje na powiazane z etykieta PRZESUNIECIE
+
+				hex = intoHex(temp1, 4);
+				strcat(buffer, hex);									// zapis PRZESUNIECIE do buffer
+				free(hex);
+			}
+			free(temp1);
+		}
+	}
+	
+
+							// 2 BLOK: OBSLUGA ROZKAZOW SKOKU
+	else					
+	{
+		strcat(buffer, "0");					// zgodnie z umowa nastepuje wyzerowanie polbajtu nastepujacego bezposrednio po kodzie rozkazu
+
+		for (i = 0; *temp2 != '\0'				// wyodrebnienie do buffer2 ETYKIETY lub PRZESUNIECIA, jezeli adres jest postaci PRZESUNIECIE(nr_rejestru)
+			&& *temp2 != '('; i++)
+		{
+			buffer2[i] = *temp2;
+			temp2++;
+		}										// na koniec wyodrebnienia temp2 wskazuje na '\0' w przypadku wyodrebnienia ETYKIETY lub '(' w przypadku wyodrebnienia PRZESUNIECIA
+		buffer2[i] = '\0';
+
+		temp1 = calloc(MAX_BIAS_LENGTH, sizeof(char));
+		if (temp1 == NULL) exit(1);
+
+
+		if (*temp2 == '(')			// a). pamiec podawana w rozkazie jest w formacie PRZESUNIECIE(NR_REJESTRU)
+		{
+			if (strchr(ordArgs, 41) == NULL) exit(1);		// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+
+			if (strcmp(ordLabel, "") != 0)					// jesli rozkaz posiada etykiete to zapisuje ja wraz z adresem jaki reprezentuje
+				saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14).pval)/2, "");
+
+			strcpy(temp1, buffer2);							// temp1 wskazuje na wyodrebnione z rozkazu PRZESUNIECIE
+			memset(buffer2, 0, (MAX_LABEL_LENGTH + 1) * sizeof(char));
 
 			temp2++;
-			for (i = 0; *temp2 != '\0'; i++)
+			for (i = 0; isdigit(*temp2); i++)				// wyodrebnienie NR_REJESTRU do buffer2
 			{
 				buffer2[i] = *temp2;
 				temp2++;
 			}
-			strcat_s(buffer, 5, intoHex(buffer2, 1)); // wyodrêbnienie drugiego rejestru do buffer
-			memset(buffer2, 0, 255 * sizeof(char));
+			buffer2[i] = '\0';
 
-			storeInDirectiveSection(buffer);
-			printf("%s", buffer);			//tutaj bedzie zapis do pliku
+			hex = intoHex(buffer2, 1);
+			strcat(buffer, hex);							// zapis NR_REJESTRU do buffer
+			free(hex);
+
+			hex = intoHex(temp1, 4);
+			strcat(buffer, hex);							// zapis PRZESUNIECIE do buffer
+			free(hex);
 		}
-		else // obsluga rozkazow typu rejestr - pamiec
+
+		else						// b). pamiec podawana w rozkazie jest w postaci ETYKIETY
 		{
+			if (isdigit(*ordArgs)) exit(1);					// zle wczytano format adresu, czego powodem jest brak znaku '(' w rozkazie (blad w pliku wejsciowym), co zostalo zinterpretowane jako etykieta, podczas gdy jest on w rzeczywistosci przesunieciem z nr rejestru
 
-			printf("%s", buffer);			//tutaj bedzie zapis do pliku
+			saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14).pval)/2, buffer2); // (!)wykorzystuje strukture labelledCommand (ktora normalnie przechowuje wylacznie etykiete i odpowiadajace jej nr rejestru i przesuniecie), aby przechowac nieuzyta wczesniej w programie etykiete, ktora zostala podana w argumencie analizowanego rozkazu. W strukturze przechowywane sa takze wartosci nr rejestru i przesuniecia odpowiadajace analizowanemu rozkazowi (aby umozliwic pozniejsze odwolanie sie do niego w celu aktualizacji jego kodu).
+
+			ptr = searchForLabel(buffer2);
+
+			if (ptr != NULL)				// znaleziono etykiete do ktorej odwoluje sie rozkaz skoku
+			{
+				sprintf(temp1, "%hu", getRegFromLabel(ptr)); // temp1 wskazuje teraz na powiazany z etykieta NR_REJESTRU
+
+				hex = intoHex(temp1, 1);
+				strcat(buffer, hex);						 // zapis NR_REJESTRU do buffer
+				free(hex);
+
+				sprintf(temp1, "%hu", getBiasFromLabel(ptr));// temp1 wskazuje teraz na powiazane z etykieta PRZESUNIECIE
+
+				hex = intoHex(temp1, 4);
+				strcat(buffer, hex);						 // zapis PRZESUNIECIE do buffer
+				free(hex);
+			}
+			else {							// nie znaleziono takiej etykiety
+				strcat(buffer, "~~~~~");					 // (!) w tym wypadku, gdy rozkaz odwoluje sie do etykiety, ktora nie zostala jeszcze uzyta w programie, odpowiednia funkcjonalnosc funkcji saveLabelAsAddress dopisze w miejsce tyld odpowiedni kod kiedy po raz pierwszy w programie zostanie uzyta ta etykieta dla rozkazu.
+			}
 		}
+		free(temp1);
 	}
-	else // obsluga rozkazow skoku
-	{
 
-		printf("%s", buffer);				//tutaj bedzie zapis do pliku
-	}
-	memset(buffer, 0, 255 * sizeof(char));
-	temp2 = temp1 = NULL;
+	storeInDirectiveSection(&directiveSection, buffer);
 }
 
-void giveOrdCode(const char* ordSign)
+void giveOrdCode(char* buff, char* ordSign)
 {
-	ptr = List;
-	for (;;) // zakladamy ze dane sa prawidlowe i kod zostanie dopasowany przed wyjsciem poza tablice
+	unsigned short i;
+
+	for (i = 0; i != 18; i++)
 	{
-		if (strcmp(ordSign, ptr->sign) == 0)
+		if (strcmp(ordSign, List[i].sign) == 0) // przeszukiwanie listy ordCode
 		{
-			strcat_s(buffer, 3, ptr->code);
-			break;
+			strcat(buff, List[i].code);			// zapis dopasowanego kodu rozkazu do bufora
+			return;
 		}
-		ptr++;
 	}
+	exit(1);									// w razie nieznalezienia odpowiedniego rozkazu zwroc blad i przerwij program
 }
-char* intoHex(const char* dec, int hexBitAmount) 
-{												
+char* intoHex(char* dec, int hexBitAmount)
+{
+	char* word = malloc((hexBitAmount + 1) * sizeof(char));
+	if (word == NULL) exit(1);
+
 	switch (hexBitAmount)
 	{
 	case 8:
-		sprintf_s(word, 9, "%08llx", atoll(dec));
+		sprintf(word, "%08lX", atol(dec));
 		break;
 	case 4:
-		sprintf_s(word, 5, "%04x", atoi(dec));
+		sprintf(word, "%04X", atoi(dec));
 		break;
 	case 2:
-		sprintf_s(word, 3, "%02x", atoi(dec));
+		sprintf(word, "%02X", atoi(dec));
 		break;
 	case 1:
-		sprintf_s(word, 2, "%01x", atoi(dec));
+		sprintf(word, "%01X", atoi(dec));
 		break;
 	}
 	return word;
+}
+char* deleteSpaces(char* string)
+{
+	char* temp1;
+	char* temp2;
+	char* bufferLong; // bufor roboczy
+	
+	temp2 = string;
+	bufferLong = calloc(BYTE_LENGTH + 1, sizeof(char));
+	if (bufferLong == NULL) exit(1);
+
+	while (*temp2 != '\0')
+	{
+		temp1 = strchr(temp2, 32);			//zwraca do temp1 wskaznik na znaleziony znak spacji (' ') lub NULL jesli nie zostal on znaleziony w stringu temp2
+		if (temp1 == NULL) temp1 = "";		//jesli nie znaleziono zadnej spacji w ciagu temp1 ma wskazywac na pusty napis, zeby nastepnie prawidlowo przekopiowac caly napis do bufora
+		strncat(bufferLong, temp2, strlen(temp2) - strlen(temp1)); //wycina czesc stringa, na ktorego wskazuje temp2, do pierwszego napotkanego znaku spacji
+		while (*temp1 == ' ')
+			temp1++;						//przesuwa wskaznik temp1 na pierwszy napotkany znak niebedacy znakiem spacji
+		temp2 = temp1;						//temp2 wskazuje teraz na nowy ciag znakow zaczynajacy sie od znaku niebedacego znakiem spacji lub na znak '\0' jesli w petli powyzej w ciagu znakow, na ktory wskazywal temp1 nie znaleziono juz zadnego znaku niebedacego spacja 
+	}
+
+	strcpy(string, bufferLong);				//na koniec, kiedy nie wykryto juz zadnych spacji w ciagu, nie ma juz czego "doklejac" do bufora wiec mozna skopiowac jego zawartosc (jest to napis wejsciowy niezawierajacy znakow spacji) do ciagu znakow, na ktory wskazuje wejsciowy wskaznik string
+	free(bufferLong);
+
+	return string;
 }

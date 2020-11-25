@@ -19,8 +19,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="IOManager.c" />
+    <ClCompile Include="LabelsManager.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="Interpreter.c" />
+    <ClCompile Include="MemoryManager.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="interpreter.h" />
+    <ClInclude Include="iotools.h" />
+    <ClInclude Include="labelcom.h" />
+    <ClInclude Include="memory.h" />
+    <ClInclude Include="stdtools.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
