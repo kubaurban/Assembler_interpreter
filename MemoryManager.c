@@ -2,9 +2,9 @@
 #include "memory.h"
 
 /**
-* Tablica rejestrow numerowanych od 0 do 15, mogaca przechowywac wartosci typu long int lub wskazniki (adresy).
+* Tablica rejestrow numerowanych od 0 do 15, mogaca przechowywac wartosci typu long int.
 */
-union reg registry[16];
+long int registry[16];
 unsigned long labelledCommandsExecuted = 0;
 unsigned short maxDataSectionCellsToTake = BYTE_LENGTH;
 unsigned short maxDirectiveSectionCellsToTake = BYTE_LENGTH;
@@ -12,10 +12,10 @@ unsigned long maxLabelledCommandsToExecute = BYTE_LENGTH;
 
 void symulateMemory()
 {
-	registry[15].pval = calloc(BYTE_LENGTH, sizeof(char));
-	registry[14].pval = calloc(BYTE_LENGTH, sizeof(char));
-	directiveSection = (char*)registry[14].pval;
-	dataSection = (char*)registry[15].pval;
+	registry[15] = (long int)calloc(BYTE_LENGTH, sizeof(char));
+	registry[14] = (long int)calloc(BYTE_LENGTH, sizeof(char));
+	directiveSection = (char*)registry[14];
+	dataSection = (char*)registry[15];
 
 	firstLabelCommAddress = (struct labelledCommand**) calloc(BYTE_LENGTH, sizeof(struct labelledCommand*));
 	ptrToSaveLabel = firstLabelCommAddress; 	// inicjacja dodatkowego wskaznika do wprowadzania nowych etykiet
@@ -25,20 +25,20 @@ void reallocDataSection()
 	void* tempAlloc;
 
 	maxDataSectionCellsToTake += BYTE_LENGTH;
-	tempAlloc = realloc(registry[15].pval, (size_t)maxDataSectionCellsToTake);
+	tempAlloc = realloc((char*)registry[15], (size_t)maxDataSectionCellsToTake);
 	if (tempAlloc == NULL) exit(1);
-	registry[15].pval = tempAlloc;
-	dataSection = (char*)registry[15].pval + strlen((char*)registry[15].pval);
+	registry[15] = (long int)tempAlloc;
+	dataSection = (char*)registry[15] + strlen((char*)registry[15]);
 }
 void reallocDirectiveSection()
 {
 	void* tempAlloc;
 
 	maxDirectiveSectionCellsToTake += BYTE_LENGTH;
-	tempAlloc = realloc(registry[14].pval, (size_t)maxDirectiveSectionCellsToTake);
+	tempAlloc = realloc((char*)registry[14], (size_t)maxDirectiveSectionCellsToTake);
 	if (tempAlloc == NULL) exit(1);
-	registry[14].pval = tempAlloc;
-	directiveSection = (char*)registry[14].pval + strlen((char*)registry[14].pval);
+	registry[14] = (long int)tempAlloc;
+	directiveSection = (char*)registry[14] + strlen((char*)registry[14]);
 }
 void reallocLabelledCommands()
 {
@@ -59,8 +59,8 @@ void freeMemory()
 		free(*ptr);
 	}
 	free(firstLabelCommAddress);
-	free(registry[14].pval);
-	free(registry[15].pval);
+	free((char*)registry[14]);
+	free((char*)registry[15]);
 }
 
 void modifyData(char* oldDataAddress, char* newData)
@@ -72,26 +72,29 @@ void modifyData(char* oldDataAddress, char* newData)
 		*(oldDataAddress + i) = *(newData + i);
 	}
 }
-union reg getFromRegistry(int which)
+long int getFromRegistry(int which)
 {
 	return registry[which];
 }
-void setRegistryIval(long int val, int which)
+void setRegistryVal(int which, long int val)
 {
-	registry[which].ival = val;
+	registry[which] = val;
 };
-void setRegistryPval(void* val, int which) 
-{
-	registry[which].pval = val;
-};
-char* getStringFromSection(char* cellsFromSectionAddressBegining, int dataLength)
+char* getStringFromSection(char* stringAddress, int dataLength)
 {
 	char* word;
 
 	word = calloc((MAX_CODE_LENGTH + 1), sizeof(char));
 	if (word == NULL) exit(1);
 
-	strncat(word, cellsFromSectionAddressBegining, dataLength);
+	if ((int)strlen(stringAddress) < dataLength) // zabezpieczenie na wypadek gdyby pod podanym adresem nie znajdowalaby sie rzadana liczba znakow
+	{ 
+		strncat(word, stringAddress, strlen(stringAddress));
+	}
+	else
+	{
+		strncat(word, stringAddress, dataLength);
+	}
 
 	return word;
 }

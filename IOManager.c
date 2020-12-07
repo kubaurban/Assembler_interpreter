@@ -91,6 +91,7 @@ void readPAInstructions(FILE* inputf)
 		interpretOrd(label, sign, arguments);
 		memset(line, 0, (MAX_LINE_LENGTH + 1) * sizeof(char));
 	}
+	storeInDirectiveSection(&directiveSection, "\0");
 }
 void readMachineCode(FILE* inputf)
 {
@@ -157,9 +158,9 @@ void saveDataSection(FILE* outputf)
 	char byte[3];
 	unsigned int i, j;
 
-	for (i = 0; i < strlen((char*)getFromRegistry(15).pval) - 1; i += 8)
+	for (i = 0; i < strlen((char*)getFromRegistry(15)) - 1; i += 8)
 	{
-		word = getStringFromSection((char*)getFromRegistry(15).pval + i + 0, 8);
+		word = getStringFromSection((char*)getFromRegistry(15) + i + 0, 8);
 
 		for (j = 0; j < 6; j += 2)
 		{
@@ -181,14 +182,14 @@ void saveDirectiveSection(FILE* outputf)
 	char byte[3];
 	unsigned int i, j;
 
-	for (i = 0; i < strlen((char*)getFromRegistry(14).pval) - 1; i += 4)
+	for (i = 0; i < strlen((char*)getFromRegistry(14)) - 1; i += 4)
 	{
 		fprintf(outputf, "\n");
 
-		if (!isdigit(*((char*)getFromRegistry(14).pval + i))) // sprawdzenie czy pierwsza cyfra szesnastkowa jest cyfra dziesietna, jezeli tak to znaczy ze nastepny rozkaz do odczytania ma 2B, w przeciwnym razie ma on 4B
+		if (!isdigit(*((char*)getFromRegistry(14) + i))) // sprawdzenie czy pierwsza cyfra szesnastkowa jest cyfra dziesietna, jezeli tak to znaczy ze nastepny rozkaz do odczytania ma 2B, w przeciwnym razie ma on 4B
 		{					// 4 BAJTOWY ROZKAZ
 
-			word = getStringFromSection((char*)getFromRegistry(14).pval + i + 0, 8);
+			word = getStringFromSection((char*)getFromRegistry(14) + i + 0, 8);
 
 			for (j = 0; j < 6; j += 2)
 			{
@@ -203,7 +204,7 @@ void saveDirectiveSection(FILE* outputf)
 		}
 		else				// 2 BAJTOWY ROZKAZ
 		{
-			word = getStringFromSection((char*)getFromRegistry(14).pval + i + 0, 4);
+			word = getStringFromSection((char*)getFromRegistry(14) + i + 0, 4);
 
 			j = 0;
 			sscanf((word + j), "%02s", byte);

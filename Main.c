@@ -1,6 +1,6 @@
 #include "stdtools.h"
 #include "interpreter.h"
-#include "memory.h"
+#include "executer.h"
 
 		//					PROJEKT POSIADA PE£N¥ DOKUMENTACJÊ FUNKCJI ORAZ WYJAŒNIENIE U¯YWANYCH STA£YCH					\\
 	//		ABY ODCZYTAÆ INFORMACJÊ NA TEMAT KTÓREGOŒ Z POWY¯SZYCH, PROSZÊ NAJECHAÆ KURSOREM NA JEGO WYST¥PIENIE W KODZIE.		\\
@@ -20,6 +20,8 @@ main(int argc, char* argv[])
 
 	fp = getInput(fp, source, argc, argv);
 	fclose(fp);
+
+	executeProgram();
 	
 	fp = fopen(strcat(source, "_out.txt"), "w");
 	saveDataSection(fp);

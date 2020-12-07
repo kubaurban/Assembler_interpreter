@@ -27,6 +27,7 @@
     <ClCompile Include="MemoryManager.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="executer.h" />
     <ClInclude Include="interpreter.h" />
     <ClInclude Include="iotools.h" />
     <ClInclude Include="labelcom.h" />

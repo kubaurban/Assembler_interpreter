@@ -39,7 +39,7 @@ void fillEmptyAddressInOrderCode(struct labelledCommand* ptr, int registryNumber
 	sprintf(newData, "%01X", registryNumber);
 	sprintf(tempData, "%04X", bias);
 	strcat(newData, tempData);
-	modifyData((ptr->bias) * 2 + 3 + (char*)getFromRegistry(ptr->registryNumber).pval, newData); //pierwszy argument funkcji to adres rozkazu (przesuniety o kod rozkazu i nr 1 rejestru - stad +3), ktory odwolywal sie (po etykiecie) do obecnie interpretowanego rozkazu zanim ten zostal jeszcze wykonany. Wykonanie funkcji aktualizuje nieznana wczesniej czesc kodu rozkazu na adres analizowanego obecnie rozkazu, do ktorego sie odwolywal (przez etykiete w argumencie).
+	modifyData((ptr->bias) * 2 + 3 + (char*)getFromRegistry(ptr->registryNumber), newData); //pierwszy argument funkcji to adres rozkazu (przesuniety o kod rozkazu i nr 1 rejestru - stad +3), ktory odwolywal sie (po etykiecie) do obecnie interpretowanego rozkazu zanim ten zostal jeszcze wykonany. Wykonanie funkcji aktualizuje nieznana wczesniej czesc kodu rozkazu na adres analizowanego obecnie rozkazu, do ktorego sie odwolywal (przez etykiete w argumencie).
 }
 
 unsigned short getRegFromLabel(struct labelledCommand* ptr)

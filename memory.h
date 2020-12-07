@@ -30,18 +30,6 @@ char* directiveSection;
 */
 char* dataSection;
 /**
-* Unia reg to odpowiednik pojedynczego rejestru. Moze przechowywac wartosci typu long int lub wskazniki (adresy).
-*/
-union reg
-{
-	long int ival;
-	void* pval;
-};
-/**
-* Rejestr stanu programu.
-*/
-char programStatusRegistry[16];
-/**
 * Ilosc aktualnie wykonanych komend z etykieta.
 */
 unsigned long labelledCommandsExecuted;
@@ -114,17 +102,13 @@ Adres i-tego elementu w sekcji = adres poczatku sekcji + i-te przesuniecie
 */
 void storeInDirectiveSection(char**, char*);
 /**
-* Zwraca wskaznik znajdujacy sie w i-tym rejestrze.
+* Zwraca wartosc liczbowa znajdujaca sie w i-tym rejestrze.
 */
-union reg getFromRegistry(int);
+long int getFromRegistry(int);
 /**
 * Zapisuje dana liczbowa do i-tego rejestru.
 */
-void setRegistryIval(long int, int);
-/**
-* Zapisuje wskaznik (adres) do i-tego rejestru.
-*/
-void setRegistryPval(void*, int);
+void setRegistryVal(int, long int);
 /**
 * Wyjmuje wartosc znajdujaca sie w podanej sekcji pod danym adresem, gdzie:
 Adres = adres poczatku danej sekcji + przesuniecie

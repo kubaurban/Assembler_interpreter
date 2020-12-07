@@ -37,7 +37,7 @@ void storeInDataSection(char** dest, char* val)
 	unsigned int j;
 	
 	j = strlen(val);														// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
-	if (strlen((char*)getFromRegistry(15).pval) + j >= maxDataSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
+	if (strlen((char*)getFromRegistry(15)) + j >= maxDataSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
 		reallocDataSection();
 	strcat(*dest, val);											// wlasciwe dodanie wartosci argumentu val do sekcji danych
 	*dest += j;													// przesuniecie wskaznika na nastepny wolny adres w sekcji
@@ -47,7 +47,7 @@ void storeInDirectiveSection(char** dest, char* val)
 	unsigned int j;
 
 	j = strlen(val);														// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
-	if (strlen((char*)getFromRegistry(14).pval) + j >= maxDirectiveSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
+	if (strlen((char*)getFromRegistry(14)) + j >= maxDirectiveSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
 		reallocDirectiveSection();
 	strcat(*dest, val);											// wlasciwe dodanie kodu rozkazu w argumentu val do sekcji rozkazow
 	*dest += j;													// przesuniecie wskaznika na nastepny wolny adres w sekcji
@@ -68,7 +68,7 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 	char emptyWord8[] = { '~', '~',  '~',  '~',  '~',  '~',  '~',  '~', '\0' }; 
 
 	if (strcmp(divLabel, "") != 0)		//jesli dyrektywa posiada etykiete to zapisuje ja wraz z adresem jaki reprezentuje
-		saveLabelAsAddress(divLabel, 15, (unsigned short)strlen((char*)getFromRegistry(15).pval)/2, "");
+		saveLabelAsAddress(divLabel, 15, (unsigned short)strlen((char*)getFromRegistry(15))/2, "");
 
 	temp1 = strchr(divArgs, 42);		//zwraca wskaznik na pozycje gdzie znajduje sie znak '*' (kod ASCII = 42) lub wartosc NULL jesli nie wystepuje
 	
@@ -158,7 +158,7 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 							// 1 BLOK: OBSLUGA ROZKAZOW ARYTMETYCZNYCH I ZAPISYWANIA WARTOSCI
 							 
 		if (strcmp(ordLabel, "") != 0)						// jesli rozkaz posiada etykiete to zapisuje ja wraz z adresem jaki reprezentuje
-			saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14).pval)/2, "");
+			saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14))/2, "");
 
 		for (i = 0; temp2 != temp1; i++)					// wyodrêbnienie numeru pierwszego rejestru
 		{
@@ -262,7 +262,7 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 			if (strchr(ordArgs, 41) == NULL) exit(1);		// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
 
 			if (strcmp(ordLabel, "") != 0)					// jesli rozkaz posiada etykiete to zapisuje ja wraz z adresem jaki reprezentuje
-				saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14).pval)/2, "");
+				saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14))/2, "");
 
 			strcpy(temp1, buffer2);							// temp1 wskazuje na wyodrebnione z rozkazu PRZESUNIECIE
 			memset(buffer2, 0, (MAX_LABEL_LENGTH + 1) * sizeof(char));
@@ -288,7 +288,7 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 		{
 			if (isdigit(*ordArgs)) exit(1);					// zle wczytano format adresu, czego powodem jest brak znaku '(' w rozkazie (blad w pliku wejsciowym), co zostalo zinterpretowane jako etykieta, podczas gdy jest on w rzeczywistosci przesunieciem z nr rejestru
 
-			saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14).pval)/2, buffer2); // (!)wykorzystuje strukture labelledCommand (ktora normalnie przechowuje wylacznie etykiete i odpowiadajace jej nr rejestru i przesuniecie), aby przechowac nieuzyta wczesniej w programie etykiete, ktora zostala podana w argumencie analizowanego rozkazu. W strukturze przechowywane sa takze wartosci nr rejestru i przesuniecia odpowiadajace analizowanemu rozkazowi (aby umozliwic pozniejsze odwolanie sie do niego w celu aktualizacji jego kodu).
+			saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14))/2, buffer2); // (!)wykorzystuje strukture labelledCommand (ktora normalnie przechowuje wylacznie etykiete i odpowiadajace jej nr rejestru i przesuniecie), aby przechowac nieuzyta wczesniej w programie etykiete, ktora zostala podana w argumencie analizowanego rozkazu. W strukturze przechowywane sa takze wartosci nr rejestru i przesuniecia odpowiadajace analizowanemu rozkazowi (aby umozliwic pozniejsze odwolanie sie do niego w celu aktualizacji jego kodu).
 
 			ptr = searchForLabel(buffer2);
 
