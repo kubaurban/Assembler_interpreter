@@ -5,7 +5,7 @@
 
 FILE* getInput(FILE* inputf, char* source, int argc, char* argv[])
 {
-	char temp[BYTE_LENGTH + 1];
+	char temp[DEFAULT + 1];
 	char* token1, * token2, * line;
 
 	if (argc < 2)						// nie podano sciezki wzglednej do pliku z instrukcjami pseudoasemblera (brak argumentów)

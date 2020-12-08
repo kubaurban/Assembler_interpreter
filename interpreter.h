@@ -21,8 +21,3 @@ void interpretDiv(char[], char*, char*);
 z jezyka pseudoassemblera na kod maszynowy. Zapisuje rozkaz w kodzie maszynowym do pliku.
 */
 void interpretOrd(char[], char*, char*);
-/**
-* Nadaje rozkazowi kod rozkazu zapisujac go do bufora podanego w argumencie. Przyporz¹dkowanie rozkazu do jego kodu 
-znajduje sie w strukturze ordCode, a zbior wszystkich tych przyporzadkowan znajduje sie w tablicy List.
-*/
-void giveOrdCode(char*, char*);

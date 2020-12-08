@@ -16,9 +16,9 @@ Wynosi 6, poniewaz maksymalna wartosc liczby do zapisania na 2B to 65 535 - unsi
 */
 #define MAX_LABEL_LENGTH 10
 /**
-* Maksymalna liczba do zapisania na jednym bajcie (uzyta bez glebszej idei).
+* Maksymalna liczba do zapisania na jednym bajcie (uzyta jako wartosc domyslna przy alokacji duzych blokow pamieci).
 */
-#define BYTE_LENGTH 255
+#define DEFAULT 255
 
 
 /**

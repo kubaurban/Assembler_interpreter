@@ -32,6 +32,21 @@ struct ordCode List[] = {
 	"ST",	"F3",
 };
 
+/**
+* Zamienia ciag znakow zawierajacy liczbe decymalna na ciag znakow reprezentujacy te liczbe heksadecymalnie.
+Argument hexBitAmount to liczba znakow szesnastkowych jaka spodziewamy sie otrzymac na wyjsciu.
+*/
+char* intoHex(char*, int);
+/**
+* Usuwa spacje ze stringa i zwraca na niego wskaznik.
+*/
+char* deleteSpaces(char*);
+/**
+* Nadaje rozkazowi kod rozkazu zapisujac go do bufora podanego w argumencie. Przyporz¹dkowanie rozkazu do jego kodu
+znajduje sie w strukturze ordCode, a zbior wszystkich tych przyporzadkowan znajduje sie w tablicy List.
+*/
+void giveOrdCode(char*, char*);
+
 void storeInDataSection(char** dest, char* val)
 {
 	unsigned int j;
@@ -359,7 +374,7 @@ char* deleteSpaces(char* string)
 	char* bufferLong; // bufor roboczy
 
 	temp2 = string;
-	bufferLong = calloc(BYTE_LENGTH + 1, sizeof(char));
+	bufferLong = calloc(DEFAULT + 1, sizeof(char));
 	if (bufferLong == NULL) exit(1);
 
 	while (*temp2 != '\0')

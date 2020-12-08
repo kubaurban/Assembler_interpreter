@@ -6,25 +6,25 @@
 */
 long int registry[16];
 unsigned long labelledCommandsExecuted = 0;
-unsigned short maxDataSectionCellsToTake = BYTE_LENGTH;
-unsigned short maxDirectiveSectionCellsToTake = BYTE_LENGTH;
-unsigned long maxLabelledCommandsToExecute = BYTE_LENGTH;
+unsigned short maxDataSectionCellsToTake = DEFAULT;
+unsigned short maxDirectiveSectionCellsToTake = DEFAULT;
+unsigned long maxLabelledCommandsToExecute = DEFAULT;
 
 void symulateMemory()
 {
-	registry[15] = (long int)calloc(BYTE_LENGTH, sizeof(char));
-	registry[14] = (long int)calloc(BYTE_LENGTH, sizeof(char));
+	registry[15] = (long int)calloc(DEFAULT, sizeof(char));
+	registry[14] = (long int)calloc(DEFAULT, sizeof(char));
 	directiveSection = (char*)registry[14];
 	dataSection = (char*)registry[15];
 
-	firstLabelCommAddress = (struct labelledCommand**)calloc(BYTE_LENGTH, sizeof(struct labelledCommand*));
+	firstLabelCommAddress = (struct labelledCommand**)calloc(DEFAULT, sizeof(struct labelledCommand*));
 	ptrToSaveLabel = firstLabelCommAddress; 	// inicjacja dodatkowego wskaznika do wprowadzania nowych etykiet
 }
 void reallocDataSection()
 {
 	void* tempAlloc;
 
-	maxDataSectionCellsToTake += BYTE_LENGTH;
+	maxDataSectionCellsToTake += DEFAULT;
 	tempAlloc = realloc((char*)registry[15], (size_t)maxDataSectionCellsToTake);
 	if (tempAlloc == NULL) exit(1);
 	registry[15] = (long int)tempAlloc;
@@ -34,7 +34,7 @@ void reallocDirectiveSection()
 {
 	void* tempAlloc;
 
-	maxDirectiveSectionCellsToTake += BYTE_LENGTH;
+	maxDirectiveSectionCellsToTake += DEFAULT;
 	tempAlloc = realloc((char*)registry[14], (size_t)maxDirectiveSectionCellsToTake);
 	if (tempAlloc == NULL) exit(1);
 	registry[14] = (long int)tempAlloc;
@@ -44,7 +44,7 @@ void reallocLabelledCommands()
 {
 	struct labelledCommand** ptrToRealloc;
 
-	maxLabelledCommandsToExecute += BYTE_LENGTH;
+	maxLabelledCommandsToExecute += DEFAULT;
 	ptrToRealloc = (struct labelledCommand**)realloc(firstLabelCommAddress, (size_t)maxLabelledCommandsToExecute);
 	if (ptrToRealloc == NULL) exit(1);
 	firstLabelCommAddress = ptrToRealloc;
