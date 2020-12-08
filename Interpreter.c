@@ -55,7 +55,6 @@ void storeInDataSection(char** dest, char* val)
 	if (strlen((char*)getFromRegistry(15)) + j >= maxDataSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
 		reallocDataSection();
 	strcat(*dest, val);											// wlasciwe dodanie wartosci argumentu val do sekcji danych
-	*dest += j;													// przesuniecie wskaznika na nastepny wolny adres w sekcji
 }
 void storeInDirectiveSection(char** dest, char* val)
 {
@@ -65,7 +64,6 @@ void storeInDirectiveSection(char** dest, char* val)
 	if (strlen((char*)getFromRegistry(14)) + j >= maxDirectiveSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
 		reallocDirectiveSection();
 	strcat(*dest, val);											// wlasciwe dodanie kodu rozkazu w argumentu val do sekcji rozkazow
-	*dest += j;													// przesuniecie wskaznika na nastepny wolny adres w sekcji
 }
 void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 {
@@ -75,8 +73,7 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 	* Wykorzystuje go przede wszystkim, aby wyciac odpowiedni krotszy napis z dluzszego napisu.
 	*/
 	char buffer2[MAX_LABEL_LENGTH + 1];
-	char* hex;
-	char* temp1;
+	char* hex, * temp1, * section;
 	/*
 	* Wypelniona ~ tablica emptyWord reprezentuje zarezerwowana przez dyrektywe DS pamiec 4 bajtow.
 	*/
@@ -88,6 +85,10 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 	temp1 = strchr(divArgs, 42);		//zwraca wskaznik na pozycje gdzie znajduje sie znak '*' (kod ASCII = 42) lub wartosc NULL jesli nie wystepuje
 
 	memset(buffer2, 0, MAX_LABEL_LENGTH + 1);
+
+	section = (char*)getFromRegistry(15);
+	section += strlen(section);		    //ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
+
 	if (temp1 == NULL)	// na podstawie informacji, czy w argumencie dyrektywy znajduje sie znak '*' mozemy obsluge dyrektyw podzielic na dwa bloki:
 	{
 		// 1 BLOK
@@ -99,13 +100,13 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 			strncat(buffer2, divArgs + N + 1, strlen(divArgs) - N - 2); // wycina fragment <liczba_calkowita> do buffer2
 
 			hex = intoHex(buffer2, 8);
-			storeInDataSection(&dataSection, hex);
+			storeInDataSection(&section, hex);
 			free(hex);
 		}
 
 		else								// OBSLUGA DYREKTYW POSTACI: <etykieta> DS INTEGER
 		{
-			storeInDataSection(&dataSection, emptyWord8);
+			storeInDataSection(&section, emptyWord8);
 		}
 	}
 
@@ -126,7 +127,7 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 			for (i = 0; i < k; i++)
 			{
 				hex = intoHex(buffer2, 8);
-				storeInDataSection(&dataSection, hex);
+				storeInDataSection(&section, hex);
 				free(hex);
 			}
 		}
@@ -135,7 +136,7 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 		{
 			for (i = 0; i < k; i++)
 			{
-				storeInDataSection(&dataSection, emptyWord8);
+				storeInDataSection(&section, emptyWord8);
 			}
 		}
 	}
@@ -154,9 +155,7 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 	* Wykorzystuje go przede wszystkim, aby wyciac odpowiedni krotszy napis z dluzszego napisu.
 	*/
 	char buffer2[MAX_LABEL_LENGTH + 1];
-	char* hex;
-	char* temp1;
-	char* temp2;
+	char* hex, * temp1, * temp2, * section;
 	struct labelledCommand* ptr;
 
 	ordLabel = deleteSpaces(ordLabel);
@@ -328,7 +327,9 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 		free(temp1);
 	}
 
-	storeInDirectiveSection(&directiveSection, buffer);
+	section = (char*)getFromRegistry(14);
+	section += strlen(section);
+	storeInDirectiveSection(&section, buffer);
 }
 
 void giveOrdCode(char* buff, char* ordSign)
@@ -374,7 +375,7 @@ char* deleteSpaces(char* string)
 	char* bufferLong; // bufor roboczy
 
 	temp2 = string;
-	bufferLong = calloc(DEFAULT + 1, sizeof(char));
+	bufferLong = calloc((DEFAULT + 1), sizeof(char));
 	if (bufferLong == NULL) exit(1);
 
 	while (*temp2 != '\0')

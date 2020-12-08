@@ -22,14 +22,6 @@ Wynosi 6, poniewaz maksymalna wartosc liczby do zapisania na 2B to 65 535 - unsi
 
 
 /**
-* Wskaznik odwolujacy sie do nastepnego "wolnego" adresu w sekcji rozkazow.
-*/
-char* directiveSection;
-/**
-* Wskaznik odwolujacy sie do nastepnego "wolnego" adresu w sekcji danych.
-*/
-char* dataSection;
-/**
 * Ilosc aktualnie wykonanych komend z etykieta.
 */
 unsigned long labelledCommandsExecuted;

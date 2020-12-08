@@ -14,8 +14,6 @@ void symulateMemory()
 {
 	registry[15] = (long int)calloc(DEFAULT, sizeof(char));
 	registry[14] = (long int)calloc(DEFAULT, sizeof(char));
-	directiveSection = (char*)registry[14];
-	dataSection = (char*)registry[15];
 
 	firstLabelCommAddress = (struct labelledCommand**)calloc(DEFAULT, sizeof(struct labelledCommand*));
 	ptrToSaveLabel = firstLabelCommAddress; 	// inicjacja dodatkowego wskaznika do wprowadzania nowych etykiet
@@ -28,7 +26,6 @@ void reallocDataSection()
 	tempAlloc = realloc((char*)registry[15], (size_t)maxDataSectionCellsToTake);
 	if (tempAlloc == NULL) exit(1);
 	registry[15] = (long int)tempAlloc;
-	dataSection = (char*)registry[15] + strlen((char*)registry[15]);
 }
 void reallocDirectiveSection()
 {
@@ -38,7 +35,6 @@ void reallocDirectiveSection()
 	tempAlloc = realloc((char*)registry[14], (size_t)maxDirectiveSectionCellsToTake);
 	if (tempAlloc == NULL) exit(1);
 	registry[14] = (long int)tempAlloc;
-	directiveSection = (char*)registry[14] + strlen((char*)registry[14]);
 }
 void reallocLabelledCommands()
 {
