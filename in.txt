@@ -1,0 +1,62 @@
+DANE       DS  10*INTEGER
+JEDEN      DC  INTEGER(1)
+ZERO       DC  INTEGER(0)
+CZTERY     DC  INTEGER(4)
+STO        DC  INTEGER(10)
+WMIN       DS  INTEGER
+WMAX       DS  INTEGER
+
+           LA  0,DANE
+           SR  1,1
+           A   1,JEDEN
+           ST  1,0(0)
+           A   0,CZTERY
+           A   1,JEDEN
+           ST  1,0(0)
+           A   0,CZTERY
+           A   1,JEDEN
+           ST  1,0(0)
+           A   0,CZTERY
+           A   1,JEDEN
+           ST  1,0(0)
+           A   0,CZTERY
+           A   1,JEDEN
+           ST  1,0(0)
+           A   0,CZTERY
+           A   1,JEDEN
+           ST  1,0(0)
+           A   0,CZTERY
+           A   1,JEDEN
+           ST  1,0(0)
+           A   0,CZTERY
+           A   1,JEDEN
+           ST  1,0(0)
+           A   0,CZTERY
+           A   1,JEDEN
+           ST  1,0(0)
+           A   0,CZTERY
+           A   1,JEDEN
+           ST  1,0(0)
+           LA  0, DANE
+           LA  7, DANE
+           M   1, CZTERY
+           L   2, STO
+           M   2, CZTERY
+           AR  7, 2
+           L   4,0(0) //rejestr minimum
+           L   5,0(0) //rejestr maksimum
+NEXT       CR  0, 7
+           JZ  KONIEC
+           L   6,0(0) //bieżąca wartość tablicy
+S_MIN      CR  4, 6
+           JN  S_MAX
+           JZ  N_P
+           LR  4, 6
+           J   N_P
+S_MAX      CR  5, 6
+           JZ  N_P
+           LR  5, 6
+N_P        A   0, CZTERY
+           J   NEXT
+KONIEC     ST  4, WMIN
+           ST  5, WMAX

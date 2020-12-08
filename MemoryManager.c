@@ -17,7 +17,7 @@ void symulateMemory()
 	directiveSection = (char*)registry[14];
 	dataSection = (char*)registry[15];
 
-	firstLabelCommAddress = (struct labelledCommand**) calloc(BYTE_LENGTH, sizeof(struct labelledCommand*));
+	firstLabelCommAddress = (struct labelledCommand**)calloc(BYTE_LENGTH, sizeof(struct labelledCommand*));
 	ptrToSaveLabel = firstLabelCommAddress; 	// inicjacja dodatkowego wskaznika do wprowadzania nowych etykiet
 }
 void reallocDataSection()
@@ -45,7 +45,7 @@ void reallocLabelledCommands()
 	struct labelledCommand** ptrToRealloc;
 
 	maxLabelledCommandsToExecute += BYTE_LENGTH;
-	ptrToRealloc = (struct labelledCommand**) realloc(firstLabelCommAddress, (size_t)maxLabelledCommandsToExecute);
+	ptrToRealloc = (struct labelledCommand**)realloc(firstLabelCommAddress, (size_t)maxLabelledCommandsToExecute);
 	if (ptrToRealloc == NULL) exit(1);
 	firstLabelCommAddress = ptrToRealloc;
 	ptrToSaveLabel = firstLabelCommAddress + labelledCommandsExecuted;
@@ -54,7 +54,7 @@ void freeMemory()
 {
 	struct labelledCommand** ptr;
 
-	for (ptr = firstLabelCommAddress; ptr != ptrToSaveLabel; ptr++) 
+	for (ptr = firstLabelCommAddress; ptr != ptrToSaveLabel; ptr++)
 	{
 		free(*ptr);
 	}
@@ -67,7 +67,7 @@ void modifyData(char* oldDataAddress, char* newData)
 {
 	unsigned int i;
 
-	for (i = 0; i < (int) strlen(newData); i++)
+	for (i = 0; i < (int)strlen(newData); i++)
 	{
 		*(oldDataAddress + i) = *(newData + i);
 	}
@@ -88,7 +88,7 @@ char* getStringFromSection(char* stringAddress, int dataLength)
 	if (word == NULL) exit(1);
 
 	if ((int)strlen(stringAddress) < dataLength) // zabezpieczenie na wypadek gdyby pod podanym adresem nie znajdowalaby sie rzadana liczba znakow
-	{ 
+	{
 		strncat(word, stringAddress, strlen(stringAddress));
 	}
 	else

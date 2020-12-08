@@ -1,24 +1,24 @@
-#include "executer.h"
+ï»¿#include "executer.h"
 #include <ctype.h>
 #include <math.h>
 
 /*
-* Funkcja jako pierwszy argument przyjmuje rejestr stanu programu. Modyfikuje dane okreslone za pomoc¹ flagi 
+* Funkcja jako pierwszy argument przyjmuje rejestr stanu programu. Modyfikuje dane okreslone za pomocÂ¹ flagi
 (1 - czesc adresowa, 0 - znak ostatniej operacji) na podany w trzecim argumencie ciag bitow.
 */
 void changeVector(char* vector, int flag, char* newBinaryData);
 /*
-* Funkcja wykonuje rozkaz o podanej w pierwszym argumencie treœci. Domyslnie przekazywany jest rozkaz o dlugosci 4B, 
-wiec jesli analizowany rozkaz ma dlugosc 2B to moze zdarzyc sie ze pozostala czesc rozkazu jest zbedna. 
+* Funkcja wykonuje rozkaz o podanej w pierwszym argumencie tresci. Domyslnie przekazywany jest rozkaz o dlugosci 4B,
+wiec jesli analizowany rozkaz ma dlugosc 2B to moze zdarzyc sie ze pozostala czesc rozkazu jest zbedna.
 Nie przeszkadza to jednak w dalszym wykonaniu programu.
 */
-unsigned long executeCommand(char* commandAddress, char* PSVector);
+unsigned long executeCommand(char* commandAddress, char* PSVector, int* regFlags);
 /*
 * Zwraca tzw. efektywny adres wyliczany ze wzoru adres efektywny = adres + przesuniecie.
 */
 char* getEffectiveAddress(int reg, char* adr);
 /*
-* Zamienia liczbe podana w drugim argumencie (system dziesietny) na liczbe w systemie dwojkowym - format 32 bitowy. 
+* Zamienia liczbe podana w drugim argumencie (system dziesietny) na liczbe w systemie dwojkowym - format 32 bitowy.
 Otrzymana liczbe binarnie zapisuje w przekazywanej w drugim argumencie tablicy.
 */
 void DecIntoBinary(char bin[], unsigned long int number);
@@ -31,10 +31,10 @@ unsigned long unsignIntoDec(int otherSystem, char* bin);
 */
 long signIntoDec(int otherSystem, char* bin);
 
-void AR(int reg1, int reg2, char* PSVector);
-void A(int reg1, char* adr, char* PSVector);
-void SR(int reg1, int reg2, char* PSVector);
-void S(int reg1, char* adr, char* PSVector);
+void AR(int reg1, int reg2, int* regFlags, char* PSVector);
+void A(int reg1, int* regFlags, char* adr, char* PSVector);
+void SR(int reg1, int reg2, int* regFlags, char* PSVector);
+void S(int reg1, int* regFlags, char* adr, char* PSVector);
 void MR(int reg1, int reg2, char* PSVector);
 void M(int reg1, char* adr, char* PSVector);
 void DR(int reg1, int reg2, char* PSVector);
@@ -61,15 +61,18 @@ void changeSignAfterArithmeticCommand(long result, char* PSVector, int status);
 int isOverflow(long long result);
 
 
-void executeProgram() 
+void executeProgram()
 {
 	char programStatusVector[65];	//8 bajtowy rejestr stanu programu
 	char bin[33];					// bufor na binarna reprezentacje adresu nast. rozkazu przechowywanego w rejestrze stanu programu
-	char* adr;
+	char* adr, * cmd;
 	unsigned long newAdr;
+	int regFlag[16];
 
 	programStatusVector[64] = bin[32] = '\0';
-								/*faza wstepna przygotowujaca program do wykonania*/
+									/*faza wstepna przygotowujaca program do wykonania*/
+	memset(regFlag, 0, 16*sizeof(int));
+	regFlag[14] = regFlag[15] = 1;
 	memset(programStatusVector, '0', 64);		// wypelnienie zerami rejestru stanu programu
 	DecIntoBinary(bin, (unsigned)getFromRegistry(14));		// zaladowanie do bufora bin binarnej reprezentacji adresu poczatku sekcji rozkazow umieszczonej w rejestrze 14
 	changeVector(programStatusVector, 1, bin);
@@ -77,7 +80,9 @@ void executeProgram()
 
 	while (*adr != '\0')
 	{
-		newAdr = executeCommand(getStringFromSection(adr, 8), programStatusVector);
+		cmd = getStringFromSection(adr, 8);
+		newAdr = executeCommand(cmd, programStatusVector, regFlag);
+		free(cmd);
 		DecIntoBinary(bin, newAdr);
 		changeVector(programStatusVector, 1, bin);
 		adr = (char*)unsignIntoDec(2, programStatusVector + 32);
@@ -98,17 +103,17 @@ void changeVector(char* vector, int flag, char* newBinaryData)
 		vector[17] = *(newBinaryData + 1);
 	}
 }
-unsigned long executeCommand(char* commandHexAddress, char* PSVector)
+unsigned long executeCommand(char* commandHexAddress, char* PSVector, int *regFlags)
 {
 	char code[3] = { '0','0' };
 	char r1[2], r2[2];
 	int reg1, reg2;
-	char* adrArg, * effAdr;
+	char* data, * effAdr;
 	unsigned long newAdr;
 	int commandLength = 0;
 
 	r1[1] = r2[1] = code[2] = '\0';
-	adrArg = effAdr = NULL;
+	data = effAdr = NULL;
 
 	strncpy(code, commandHexAddress, 2);
 
@@ -122,21 +127,25 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector)
 	{
 	case 16:
 		commandLength = 4;
-		AR(reg1, reg2, PSVector);
+		AR(reg1, reg2, regFlags, PSVector);
 		break;
 	case 209:
 		commandLength = 8;
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
-		A(reg1, getStringFromSection(effAdr, 8), PSVector); // drugi argument to argument adresowy (przekazany jako pamiec).
+		data = getStringFromSection(effAdr, 8);
+		A(reg1, regFlags, data, PSVector); // drugi argument to argument adresowy (przekazany jako pamiec).
+		free(data);
 		break;
 	case 18:
 		commandLength = 4;
-		SR(reg1, reg2, PSVector);
+		SR(reg1, reg2, regFlags, PSVector);
 		break;
 	case 211:
 		commandLength = 8;
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
-		S(reg1, getStringFromSection(effAdr, 8), PSVector);
+		data = getStringFromSection(effAdr, 8);
+		S(reg1, regFlags, data, PSVector);
+		free(data);
 		break;
 	case 20:
 		commandLength = 4;
@@ -145,7 +154,9 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector)
 	case 213:
 		commandLength = 8;
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
-		M(reg1, getStringFromSection(effAdr, 8), PSVector);
+		data = getStringFromSection(effAdr, 8);
+		M(reg1, data, PSVector);
+		free(data);
 		break;
 	case 22:
 		commandLength = 4;
@@ -154,7 +165,9 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector)
 	case 215:
 		commandLength = 8;
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
-		D(reg1, getStringFromSection(effAdr, 8), PSVector);
+		data = getStringFromSection(effAdr, 8);
+		D(reg1, data, PSVector);
+		free(data);
 		break;
 	case 24:
 		commandLength = 4;
@@ -163,7 +176,9 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector)
 	case 217:
 		commandLength = 8;
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
-		C(reg1, getStringFromSection(effAdr, 8), PSVector);
+		data = getStringFromSection(effAdr, 8);
+		C(reg1, data, PSVector);
+		free(data);
 		break;
 
 	case 224:
@@ -182,16 +197,21 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector)
 	case 240:
 		commandLength = 8;
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
-		L(reg1, getStringFromSection(effAdr, 8));
+		data = getStringFromSection(effAdr, 8);
+		L(reg1, data);
+		free(data);
+		regFlags[reg1] = 0;
 		break;
 	case 49:
 		commandLength = 4;
 		LR(reg1, reg2);
+		regFlags[reg1] = regFlags[reg2];
 		break;
 	case 242:
 		commandLength = 8;
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
 		LA(reg1, effAdr);
+		regFlags[reg1] = 1;
 		break;
 	case 243:
 		commandLength = 8;
@@ -241,7 +261,7 @@ unsigned long unsignIntoDec(int otherSystem, char* number)
 	while (len - i != 0)
 	{
 		a = number[len - 1 - i];
-		if (!isdigit(a)) 
+		if (!isdigit(a))
 		{
 			temp += (unsigned long)(a - 'A' + 10) * (unsigned long)pow(otherSystem, i);
 		}
@@ -276,12 +296,15 @@ long signIntoDec(int otherSystem, char* number)
 	return temp;
 }
 
-void AR(int reg1, int reg2, char* PSVector)
+void AR(int reg1, int reg2, int* regFlags, char* PSVector)
 {
 	long long result;
 	int flag = 0;
-
-	result = (long long)getFromRegistry(reg1) + (long long)getFromRegistry(reg2);
+	long long arg1 = (long long)getFromRegistry(reg1);
+	long long arg2 = (long long)getFromRegistry(reg2);
+	if (regFlags[reg2] == 1) arg1 *= 2;
+	if (regFlags[reg1] == 1) arg2 *= 2;
+	result = arg1 + arg2;
 
 	if (!isOverflow(result))
 	{
@@ -291,12 +314,14 @@ void AR(int reg1, int reg2, char* PSVector)
 
 	changeSignAfterArithmeticCommand((long)result, PSVector, flag);
 }
-void A(int reg1, char* adr, char* PSVector)
+void A(int reg1, int* regFlags, char* adr, char* PSVector)
 {
 	long long result;
 	int flag = 0;
+	long long arg2 = (long long)signIntoDec(16, adr);
 
-	result = (long long)getFromRegistry(reg1) + (long long)signIntoDec(16, adr);
+	if (regFlags[reg1] == 1) arg2 *= 2;
+	result = (long long)getFromRegistry(reg1) + arg2;
 
 	if (!isOverflow(result))
 	{
@@ -306,12 +331,14 @@ void A(int reg1, char* adr, char* PSVector)
 
 	changeSignAfterArithmeticCommand((long)result, PSVector, flag);
 }
-void SR(int reg1, int reg2, char* PSVector)
+void SR(int reg1, int reg2, int* regFlags, char* PSVector)
 {
 	long long result;
 	int flag = 0;
+	long long arg2 = (long long)getFromRegistry(reg2);
 
-	result = (long long)getFromRegistry(reg1) - (long long)getFromRegistry(reg2);
+	if (regFlags[reg1] == 1) arg2 *= 2;
+	result = (long long)getFromRegistry(reg1) - arg2;
 
 	if (!isOverflow(result))
 	{
@@ -321,12 +348,14 @@ void SR(int reg1, int reg2, char* PSVector)
 
 	changeSignAfterArithmeticCommand((long)result, PSVector, flag);
 }
-void S(int reg1, char* adr, char* PSVector)
+void S(int reg1, int* regFlags, char* adr, char* PSVector)
 {
 	long long result;
 	int flag = 0;
+	long long arg2 = (long long)signIntoDec(16, adr);
 
-	result = (long long)getFromRegistry(reg1) - (long long)signIntoDec(16, adr);
+	if (regFlags[reg1] == 1) arg2 *= 2;
+	result = (long long)getFromRegistry(reg1) - arg2;
 
 	if (!isOverflow(result))
 	{
@@ -431,7 +460,7 @@ unsigned long JZ(char* adr, char* PSVector)
 
 	strncpy(sign, PSVector + 16, 2);
 	sign[2] = '\0';
-	if(strcmp(sign, "00") == 0)
+	if (strcmp(sign, "00") == 0)
 		return (unsigned long)adr;
 	return unsignIntoDec(2, PSVector + 32) + 8;
 }
@@ -465,7 +494,7 @@ void L(int reg1, char* adr)
 }
 void LA(int reg1, char* adr)
 {
-	setRegistryVal(reg1, unsignIntoDec(16, adr));
+	setRegistryVal(reg1, (unsigned long)adr);
 }
 void ST(int reg1, char* adr)
 {

@@ -8,29 +8,30 @@
 
 main(int argc, char* argv[])
 {
-	FILE* fp;
-	char* source;
+FILE* fp;
+char* source;
 
-	symulateMemory();
+symulateMemory();
 
-	fp = malloc(sizeof(FILE));
-	if (fp == NULL) exit(1);
-	source = calloc((BYTE_LENGTH + 5), sizeof(char));
-	if (source == NULL) exit(1);
+fp = malloc(sizeof(FILE));
+if (fp == NULL) exit(1);
+source = calloc((BYTE_LENGTH + 5), sizeof(char));
+if (source == NULL) exit(1);
 
-	fp = getInput(fp, source, argc, argv);
-	fclose(fp);
+fp = getInput(fp, source, argc, argv);
+fclose(fp);
 
-	executeProgram();
-	
-	fp = fopen(strcat(source, "_out.txt"), "w");
-	saveDataSection(fp);
-	saveDirectiveSection(fp);
-	fclose(fp);
+executeProgram();
 
-	freeMemory();
-	free(source);
-	free(fp);
+fp = fopen(strcat(source, "_out.txt"), "w");
+saveDataSection(fp);
+saveDirectiveSection(fp);
+fclose(fp);
 
-	return 0;
+freeMemory();
+free(source);
+free(fp);
+
+return 0;
 }
+

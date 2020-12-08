@@ -11,7 +11,7 @@ void saveLabelAsAddress(char label[], int registryNumber, unsigned short bias, c
 		reallocLabelledCommands();
 
 	ptr = NULL;
-	if(*label != '\0') 
+	if (*label != '\0')
 		ptr = searchForLabelArgument(label, firstLabelCommAddress);// wyszukuje wsrod dotychczasowo wykonanych komend podanej etykiety (ale zapisanej jako ARGUMENT). Drugi argument funkcji to wskaznik, od ktorego nalezy rozpoczac przeszukiwanie struktury.
 
 	while (ptr != NULL)											//podmiana jesli etykieta tego rozkazu byla uzyta juz wczesniej jako argument: najpierw uzupelnienie kodu rozkazu w sekcji rozkazow, potem aktualizacja nr rejestru i przesuniecia dla etykiety obecnie interpretowanego rozkazu
@@ -56,7 +56,7 @@ struct labelledCommand* searchForLabel(char* label)
 	struct labelledCommand** ptrToSearch;
 
 	for (ptrToSearch = firstLabelCommAddress; ptrToSearch != ptrToSaveLabel; ptrToSearch++)	//ptrToSearch wskazuje na adres pierwszej etykietowanej komendy przechowywanej w pamieci, na ktora wskazuje firsLabelCommAddress
-	{													
+	{
 		if (strcmp(label, (*ptrToSearch)->label) == 0)	//przegladanie pamieci w celu znalezienia odpowiedniej etykiety komendy
 		{
 			return *ptrToSearch;

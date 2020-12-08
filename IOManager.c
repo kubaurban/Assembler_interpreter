@@ -6,7 +6,7 @@
 FILE* getInput(FILE* inputf, char* source, int argc, char* argv[])
 {
 	char temp[BYTE_LENGTH + 1];
-	char *token1, *token2, *line;
+	char* token1, * token2, * line;
 
 	if (argc < 2)						// nie podano sciezki wzglednej do pliku z instrukcjami pseudoasemblera (brak argumentów)
 	{
@@ -65,7 +65,7 @@ void readPAInstructions(FILE* inputf)
 		token1 = strtok(line, " \r\n\t");
 		token2 = strtok(NULL, " \r\n\t");
 		token3 = strtok(NULL, " \r\n\t");
-		
+
 		if (token3 == NULL) {						// dyrektywa bez etykiety
 			strcpy(sign, token1);
 			strcpy(arguments, token2);
@@ -145,7 +145,7 @@ int readLineAndCheck(char* buff, FILE* inputf)
 		if (!feof(inputf)) exit(1);										// blad w przypadku gdy inputf == NULL, ale nie doszedl do konca pliku
 		return 1;														// inputf == NULL poniewaz zakonczyl poprawnie odczyt z calego pliku
 	}
-	if (strcmp(result, "\n") == 0 )										// zostala odczytana pusta linia (\n)
+	if (strcmp(result, "\n") == 0)										// zostala odczytana pusta linia (\n)
 		return 1;
 	if (strcmp(result, "\r\n") == 0)									// zostala odczytana pusta linia (\r\n)
 		return 1;

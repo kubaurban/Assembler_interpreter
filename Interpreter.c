@@ -35,7 +35,7 @@ struct ordCode List[] = {
 void storeInDataSection(char** dest, char* val)
 {
 	unsigned int j;
-	
+
 	j = strlen(val);														// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
 	if (strlen((char*)getFromRegistry(15)) + j >= maxDataSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
 		reallocDataSection();
@@ -52,30 +52,30 @@ void storeInDirectiveSection(char** dest, char* val)
 	strcat(*dest, val);											// wlasciwe dodanie kodu rozkazu w argumentu val do sekcji rozkazow
 	*dest += j;													// przesuniecie wskaznika na nastepny wolny adres w sekcji
 }
-void interpretDiv(char divLabel[], char* divSign, char* divArgs) 
+void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 {
 	unsigned int i, k;
 	/*
 	* buffer2 to bufor roboczy uzywany tam, gdzie wczytywany do niego string nie wymaga wiecej niz MAX_LABEL_LENGTH (10) znakow.
 	* Wykorzystuje go przede wszystkim, aby wyciac odpowiedni krotszy napis z dluzszego napisu.
 	*/
-	char buffer2[MAX_LABEL_LENGTH + 1];  
+	char buffer2[MAX_LABEL_LENGTH + 1];
 	char* hex;
 	char* temp1;
 	/*
 	* Wypelniona ~ tablica emptyWord reprezentuje zarezerwowana przez dyrektywe DS pamiec 4 bajtow.
 	*/
-	char emptyWord8[] = { '~', '~',  '~',  '~',  '~',  '~',  '~',  '~', '\0' }; 
+	char emptyWord8[] = { '~', '~',  '~',  '~',  '~',  '~',  '~',  '~', '\0' };
 
 	if (strcmp(divLabel, "") != 0)		//jesli dyrektywa posiada etykiete to zapisuje ja wraz z adresem jaki reprezentuje
-		saveLabelAsAddress(divLabel, 15, (unsigned short)strlen((char*)getFromRegistry(15))/2, "");
+		saveLabelAsAddress(divLabel, 15, (unsigned short)strlen((char*)getFromRegistry(15)) / 2, "");
 
 	temp1 = strchr(divArgs, 42);		//zwraca wskaznik na pozycje gdzie znajduje sie znak '*' (kod ASCII = 42) lub wartosc NULL jesli nie wystepuje
-	
+
 	memset(buffer2, 0, MAX_LABEL_LENGTH + 1);
 	if (temp1 == NULL)	// na podstawie informacji, czy w argumencie dyrektywy znajduje sie znak '*' mozemy obsluge dyrektyw podzielic na dwa bloki:
-	{					
-						// 1 BLOK
+	{
+		// 1 BLOK
 
 		if (strcmp(divSign, "DC") == 0)		// OBSLUGA DYREKTYW POSTACI: <etykieta> DC INTEGER(<liczba_calkowita>)
 		{
@@ -125,12 +125,12 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 		}
 	}
 }
-void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs) 
+void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 {
 	unsigned int i;
 	/**
-	* buffer to najwazniejszy bufor w programie, przechowuje (najpierw) kolejne skladowe kodu maszynowego rozkazu 
-	* (aby koncowo przechowywac caly kod maszynowy rozkazu) przed zapisaniem go w odpowiedniej sekcji oraz wczytaniem 
+	* buffer to najwazniejszy bufor w programie, przechowuje (najpierw) kolejne skladowe kodu maszynowego rozkazu
+	* (aby koncowo przechowywac caly kod maszynowy rozkazu) przed zapisaniem go w odpowiedniej sekcji oraz wczytaniem
 	* do pliku wynikowego.
 	*/
 	char buffer[MAX_CODE_LENGTH + 1];
@@ -146,19 +146,19 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 
 	ordLabel = deleteSpaces(ordLabel);
 	ordArgs = deleteSpaces(ordArgs);
-	
+
 	memset(buffer, 0, MAX_CODE_LENGTH + 1);
 	giveOrdCode(buffer, ordSign);
-	
+
 	temp1 = strchr(ordArgs, 44);		//zwraca wskaznik na pozycje gdzie znajduje sie znak ',' (kod ASCII = 44) lub wartosc NULL jesli nie wystepuje					
 	temp2 = ordArgs;
 
 	if (temp1 != NULL)		// na podstawie informacji, czy w argumentach rozkazu znajduje sie znak ',' mozemy obsluge rozkazow podzielic na dwa bloki:
-	{						
-							// 1 BLOK: OBSLUGA ROZKAZOW ARYTMETYCZNYCH I ZAPISYWANIA WARTOSCI
-							 
+	{
+		// 1 BLOK: OBSLUGA ROZKAZOW ARYTMETYCZNYCH I ZAPISYWANIA WARTOSCI
+
 		if (strcmp(ordLabel, "") != 0)						// jesli rozkaz posiada etykiete to zapisuje ja wraz z adresem jaki reprezentuje
-			saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14))/2, "");
+			saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14)) / 2, "");
 
 		for (i = 0; temp2 != temp1; i++)					// wyodrêbnienie numeru pierwszego rejestru
 		{
@@ -169,14 +169,14 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 		strcat(buffer, hex);								// zapis wyodrebnionego rejestru nr 1 do buffer
 		free(hex);
 		memset(buffer2, 0, (MAX_LABEL_LENGTH + 1) * sizeof(char));
-		
+
 		temp2++;
 		for (i = 0; *temp2 != '\0' && *temp2 != '('; i++)	// wyodrêbnienie do buffer2: drugiego REJESTRU ( format rejestr,REJESTR ),
 		{													// ETYKIETY ( format rejestr,ETYKIETA ) lub PRZESUNIECIA ( format rejestr,PRZESUNIECIE(rejestr) )
 			buffer2[i] = *temp2;
 			temp2++;
-		}						
-								
+		}
+
 
 		if (strlen(ordSign) == 2	// OBSLUGA ROZKAZOW TYPU REJESTR - REJESTR
 			&& *(ordSign + 1) == 'R')
@@ -238,10 +238,10 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 			free(temp1);
 		}
 	}
-	
 
-							// 2 BLOK: OBSLUGA ROZKAZOW SKOKU
-	else					
+
+	// 2 BLOK: OBSLUGA ROZKAZOW SKOKU
+	else
 	{
 		strcat(buffer, "0");					// zgodnie z umowa nastepuje wyzerowanie polbajtu nastepujacego bezposrednio po kodzie rozkazu
 
@@ -262,7 +262,7 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 			if (strchr(ordArgs, 41) == NULL) exit(1);		// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
 
 			if (strcmp(ordLabel, "") != 0)					// jesli rozkaz posiada etykiete to zapisuje ja wraz z adresem jaki reprezentuje
-				saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14))/2, "");
+				saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14)) / 2, "");
 
 			strcpy(temp1, buffer2);							// temp1 wskazuje na wyodrebnione z rozkazu PRZESUNIECIE
 			memset(buffer2, 0, (MAX_LABEL_LENGTH + 1) * sizeof(char));
@@ -288,7 +288,7 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 		{
 			if (isdigit(*ordArgs)) exit(1);					// zle wczytano format adresu, czego powodem jest brak znaku '(' w rozkazie (blad w pliku wejsciowym), co zostalo zinterpretowane jako etykieta, podczas gdy jest on w rzeczywistosci przesunieciem z nr rejestru
 
-			saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14))/2, buffer2); // (!)wykorzystuje strukture labelledCommand (ktora normalnie przechowuje wylacznie etykiete i odpowiadajace jej nr rejestru i przesuniecie), aby przechowac nieuzyta wczesniej w programie etykiete, ktora zostala podana w argumencie analizowanego rozkazu. W strukturze przechowywane sa takze wartosci nr rejestru i przesuniecia odpowiadajace analizowanemu rozkazowi (aby umozliwic pozniejsze odwolanie sie do niego w celu aktualizacji jego kodu).
+			saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14)) / 2, buffer2); // (!)wykorzystuje strukture labelledCommand (ktora normalnie przechowuje wylacznie etykiete i odpowiadajace jej nr rejestru i przesuniecie), aby przechowac nieuzyta wczesniej w programie etykiete, ktora zostala podana w argumencie analizowanego rozkazu. W strukturze przechowywane sa takze wartosci nr rejestru i przesuniecia odpowiadajace analizowanemu rozkazowi (aby umozliwic pozniejsze odwolanie sie do niego w celu aktualizacji jego kodu).
 
 			ptr = searchForLabel(buffer2);
 
@@ -357,7 +357,7 @@ char* deleteSpaces(char* string)
 	char* temp1;
 	char* temp2;
 	char* bufferLong; // bufor roboczy
-	
+
 	temp2 = string;
 	bufferLong = calloc(BYTE_LENGTH + 1, sizeof(char));
 	if (bufferLong == NULL) exit(1);
