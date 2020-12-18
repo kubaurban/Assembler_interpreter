@@ -50,19 +50,29 @@ void giveOrdCode(char*, char*);
 void storeInDataSection(char** dest, char* val)
 {
 	unsigned int j;
+	char* section;
 
+	section = (char*)getFromRegistry(15);
 	j = strlen(val);														// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
-	if (strlen((char*)getFromRegistry(15)) + j >= maxDataSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
+	if (strlen(section) + j >= maxDataSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
+	{
 		reallocDataSection();
+		*dest = (char*)getFromRegistry(15);
+	}
 	strcat(*dest, val);											// wlasciwe dodanie wartosci argumentu val do sekcji danych
 }
 void storeInDirectiveSection(char** dest, char* val)
 {
 	unsigned int j;
+	char* section;
 
+	section = (char*)getFromRegistry(14);
 	j = strlen(val);														// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
-	if (strlen((char*)getFromRegistry(14)) + j >= maxDirectiveSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
+	if (strlen(section) + j >= maxDirectiveSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
+	{
 		reallocDirectiveSection();
+		*dest = (char*)getFromRegistry(14);
+	}
 	strcat(*dest, val);											// wlasciwe dodanie kodu rozkazu w argumentu val do sekcji rozkazow
 }
 void interpretDiv(char divLabel[], char* divSign, char* divArgs)
@@ -375,7 +385,7 @@ char* deleteSpaces(char* string)
 	char* bufferLong; // bufor roboczy
 
 	temp2 = string;
-	bufferLong = calloc((DEFAULT + 1), sizeof(char));
+	bufferLong = calloc(DEFAULT + 1, sizeof(char));
 	if (bufferLong == NULL) exit(1);
 
 	while (*temp2 != '\0')

@@ -15,7 +15,7 @@ symulateMemory();
 
 fp = malloc(sizeof(FILE));
 if (fp == NULL) exit(1);
-source = calloc((DEFAULT + 5), sizeof(char));
+source = calloc(DEFAULT + 5, sizeof(char));
 if (source == NULL) exit(1);
 
 fp = getInput(fp, source, argc, argv);

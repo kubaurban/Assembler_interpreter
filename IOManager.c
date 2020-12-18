@@ -56,7 +56,7 @@ void readPAInstructions(FILE* inputf)
 	char label[MAX_LABEL_LENGTH + 1];
 	char sign[MAX_SIGN_LENGTH + 1];
 	char arguments[MAX_LINE_LENGTH - 15 + 1];	// 15 znakow jest zarezerwowanych na etykiete i kod rozkazu, od 16 kolumny podawane sa argumenty
-	char* token1, * token2, * token3, * section;
+	char* token1, * token2, * token3;
 
 	while (!readLineAndCheck(line, inputf))		// pobiera dyrektywy i je realizuje
 	{
@@ -89,10 +89,6 @@ void readPAInstructions(FILE* inputf)
 		interpretOrd(label, sign, arguments);
 		memset(line, 0, (MAX_LINE_LENGTH + 1) * sizeof(char));
 	}
-
-	section = (char*)getFromRegistry(14);
-	section += strlen(section);
-	storeInDirectiveSection(&section, "\0");
 }
 void readMachineCode(FILE* inputf)
 {
@@ -108,8 +104,8 @@ void readMachineCode(FILE* inputf)
 		while (token)
 		{
 			storeInDataSection(&section, token);
+			section += strlen(token);			// ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
 			token = strtok(NULL, " \r\n\t");
-			section += 2;						// ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
 		}
 		memset(line, 0, (MAX_LINE_LENGTH + 1) * sizeof(char));
 	}
@@ -123,8 +119,8 @@ void readMachineCode(FILE* inputf)
 		while (token)
 		{
 			storeInDirectiveSection(&section, token);
+			section += strlen(token);			// ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
 			token = strtok(NULL, " \r\n\t");
-			section += 2;						// ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
 		}
 		memset(line, 0, (MAX_LINE_LENGTH + 1) * sizeof(char));
 	}
