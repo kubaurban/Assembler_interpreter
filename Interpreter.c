@@ -74,7 +74,7 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 
 		if (strcmp(divSign, "DC") == 0)		// OBSLUGA DYREKTYW POSTACI: <etykieta> DC INTEGER(<liczba_calkowita>)
 		{
-			if (strchr(divArgs, 41) == NULL) exit(1);					// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+			if (strchr(divArgs, 41) == NULL) exit(9);					// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
 
 			strncat(buffer2, divArgs + N + 1, strlen(divArgs) - N - 2); // wycina fragment <liczba_calkowita> do buffer2
 
@@ -99,7 +99,7 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 
 		if (strcmp(divSign, "DC") == 0)		// OBSLUGA DYREKTYW POSTACI: <etykieta> DC <liczba_komorek_pamieci>*INTEGER(<liczba_calkowita>)
 		{
-			if (strchr(divArgs, 41) == NULL) exit(1);				// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+			if (strchr(divArgs, 41) == NULL) exit(9);				// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
 
 			strncat(buffer2, temp1 + N + 2, strlen(temp1) - N - 3);	// wycina fragment <liczba_calkowita> do buffer2
 
@@ -183,12 +183,12 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 		{
 			if (isdigit(*(temp1 + 1)))		// a). pamiec podawana w rozkazie jest w formacie PRZESUNIECIE(NR_REJESTRU) - etykieta nie moze zaczynac sie liczba
 			{
-				if (strchr(ordArgs, 41) == NULL) exit(1);	// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+				if (strchr(ordArgs, 41) == NULL) exit(9);	// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
 
-				if (strchr(ordArgs, 40) == NULL) exit(1);	// jesli nie otwarto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+				if (strchr(ordArgs, 40) == NULL) exit(9);	// jesli nie otwarto nawiasu przy podawaniu argumentu przerwij program z kodem 1
 
-				temp1 = calloc((MAX_BIAS_LENGTH + 1), sizeof(char));
-				if (temp1 == NULL) exit(1);
+				temp1 = calloc(MAX_BIAS_LENGTH + 1, sizeof(char));
+				if (temp1 == NULL) exit(10);
 
 				strcpy(temp1, buffer2);						// temp1 wskazuje na wyodrebnione z rozkazu PRZESUNIECIE
 				memset(buffer2, 0, (MAX_LABEL_LENGTH + 1) * sizeof(char));
@@ -211,10 +211,10 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 			else							// b). pamiec podawana w rozkazie jest w postaci ETYKIETY
 			{
 				ptr = searchForLabel(buffer2);
-				if (ptr == NULL) exit(1);
+				if (ptr == NULL) exit(9);
 
-				temp1 = calloc((MAX_BIAS_LENGTH + 1), sizeof(char));
-				if (temp1 == NULL) exit(1);
+				temp1 = calloc(MAX_BIAS_LENGTH + 1, sizeof(char));
+				if (temp1 == NULL) exit(9);
 
 				sprintf(temp1, "%hu", getRegFromLabel(ptr));			// temp1 wskazuje na powiazany z etykieta NR_REJESTRU
 
@@ -246,13 +246,13 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 		}										// na koniec wyodrebnienia temp2 wskazuje na '\0' w przypadku wyodrebnienia ETYKIETY lub '(' w przypadku wyodrebnienia PRZESUNIECIA
 		buffer2[i] = '\0';
 
-		temp1 = calloc(MAX_BIAS_LENGTH, sizeof(char));
-		if (temp1 == NULL) exit(1);
+		temp1 = calloc(MAX_BIAS_LENGTH + 1, sizeof(char));
+		if (temp1 == NULL) exit(10);
 
 
 		if (*temp2 == '(')			// a). pamiec podawana w rozkazie jest w formacie PRZESUNIECIE(NR_REJESTRU)
 		{
-			if (strchr(ordArgs, 41) == NULL) exit(1);		// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+			if (strchr(ordArgs, 41) == NULL) exit(9);		// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
 
 			if (strcmp(ordLabel, "") != 0)					// jesli rozkaz posiada etykiete to zapisuje ja wraz z adresem jaki reprezentuje
 				saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14)) / 2, "");
@@ -279,7 +279,7 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 
 		else						// b). pamiec podawana w rozkazie jest w postaci ETYKIETY
 		{
-			if (isdigit(*ordArgs)) exit(1);					// zle wczytano format adresu, czego powodem jest brak znaku '(' w rozkazie (blad w pliku wejsciowym), co zostalo zinterpretowane jako etykieta, podczas gdy jest on w rzeczywistosci przesunieciem z nr rejestru
+			if (isdigit(*ordArgs)) exit(9);					// zle wczytano format adresu, czego powodem jest brak znaku '(' w rozkazie (blad w pliku wejsciowym), co zostalo zinterpretowane jako etykieta, podczas gdy jest on w rzeczywistosci przesunieciem z nr rejestru
 
 			saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14)) / 2, buffer2); // (!)wykorzystuje strukture labelledCommand (ktora normalnie przechowuje wylacznie etykiete i odpowiadajace jej nr rejestru i przesuniecie), aby przechowac nieuzyta wczesniej w programie etykiete, ktora zostala podana w argumencie analizowanego rozkazu. W strukturze przechowywane sa takze wartosci nr rejestru i przesuniecia odpowiadajace analizowanemu rozkazowi (aby umozliwic pozniejsze odwolanie sie do niego w celu aktualizacji jego kodu).
 
@@ -299,7 +299,8 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 				strcat(buffer, hex);						 // zapis PRZESUNIECIE do buffer
 				free(hex);
 			}
-			else {							// nie znaleziono takiej etykiety
+			else 
+			{							// nie znaleziono takiej etykiety
 				strcat(buffer, "~~~~~");					 // (!) w tym wypadku, gdy rozkaz odwoluje sie do etykiety, ktora nie zostala jeszcze uzyta w programie, odpowiednia funkcjonalnosc funkcji saveLabelAsAddress dopisze w miejsce tyld odpowiedni kod kiedy po raz pierwszy w programie zostanie uzyta ta etykieta dla rozkazu.
 			}
 		}
@@ -321,12 +322,12 @@ void giveOrdCode(char* buff, char* ordSign)
 			return;
 		}
 	}
-	exit(1);									// w razie nieznalezienia odpowiedniego rozkazu zwroc blad i przerwij program
+	exit(9);									// w razie nieznalezienia odpowiedniego rozkazu zwroc blad i przerwij program
 }
 char* intoHex(char* dec, int hexBitAmount)
 {
-	char* word = calloc((hexBitAmount + 1), sizeof(char));
-	if (word == NULL) exit(1);
+	char* word = calloc(hexBitAmount + 1, sizeof(char));
+	if (word == NULL) exit(10);
 
 	switch (hexBitAmount)
 	{
@@ -353,7 +354,7 @@ char* deleteSpaces(char* string)
 
 	temp2 = string;
 	bufferLong = calloc(DEFAULT + 1, sizeof(char));
-	if (bufferLong == NULL) exit(1);
+	if (bufferLong == NULL) exit(10);
 
 	while (*temp2 != '\0')
 	{

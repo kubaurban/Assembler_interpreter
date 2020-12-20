@@ -1,7 +1,6 @@
 #include "stdtools.h"
 #include "labelcom.h"
 #include "memory.h"
-#include <stdio.h>
 
 void saveLabelAsAddress(char label[], int registryNumber, unsigned short bias, char labelArgument[])
 {
@@ -22,7 +21,7 @@ void saveLabelAsAddress(char label[], int registryNumber, unsigned short bias, c
 
 	ptrToSaveLabel = firstLabelCommAddress + labelledCommandsExecuted; //ustawienie wskaznika na nastepna wolna pamiec zarezerwowana na obiekt typu labelledCommand
 	*ptrToSaveLabel = calloc(1, sizeof(struct labelledCommand));//zaalokuj pamiec na kolejny obiekt labelledCommand i zwroc na niego aktualny wskaznik
-	if (*ptrToSaveLabel == NULL) exit(1);
+	if (*ptrToSaveLabel == NULL) exit(10);
 
 	strcpy((*ptrToSaveLabel)->label, label);					//nadaj nowemu obiektowi przekazana w funkcji etykiete "label"
 	(*ptrToSaveLabel)->registryNumber = registryNumber;			//nadaj nowemu obiektowi przekazany w funkcji nr rejestru "registry"

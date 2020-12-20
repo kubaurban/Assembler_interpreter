@@ -64,8 +64,9 @@ void reallocDirectiveSection();
 void reallocLabelledCommands();
 /**
 *Zwalnia alokowana podczas trwania programu pamiec: obiekty typu labelledCommand oraz zawartosci rejestrow 14 i 15.
+* Dodatkowo zwalnia w odpowiedniej kolejnosci 2 bloki pamieci, na ktore wskazuja przekazywane w argumentach wskazniki.
 */
-void freeMemory();
+void freeMemory(char*, FILE*);
 /**
 * Zapisuje do sekcji danych nowa wartosc podana w argumencie.
 Adres i-tego elementu w sekcji = adres poczatku sekcji + i-te przesuniecie

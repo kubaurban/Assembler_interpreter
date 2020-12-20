@@ -6,8 +6,8 @@
 */
 struct ordCode
 {
-	char* sign;
-	char* code;
+	char sign[3];
+	char code[3];
 };
 
 /**

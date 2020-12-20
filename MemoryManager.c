@@ -52,10 +52,10 @@ void reallocLabelledCommands()
 
 	maxLabelledCommandsToExecute += DEFAULT;
 	ptrToRealloc = (struct labelledCommand**)realloc(firstLabelCommAddress, (size_t)maxLabelledCommandsToExecute);
-	if (ptrToRealloc == NULL) exit(10);
+	if (ptrToRealloc == NULL) exit(100);
 	firstLabelCommAddress = ptrToRealloc;
 }
-void freeMemory()
+void freeMemory(char* p1, FILE* p2)
 {
 	struct labelledCommand** ptr;
 
@@ -66,6 +66,8 @@ void freeMemory()
 	free(firstLabelCommAddress);
 	free((char*)registry[14]);
 	free((char*)registry[15]);
+	free(p1);
+	free(p2);
 }
 
 void storeInDataSection(char* val)
@@ -113,8 +115,8 @@ char* getStringFromSection(char* stringAddress, int dataLength)
 {
 	char* word;
 
-	word = calloc((MAX_CODE_LENGTH + 1), sizeof(char));
-	if (word == NULL) exit(1);
+	word = calloc(MAX_CODE_LENGTH + 1, sizeof(char));
+	if (word == NULL) exit(10);
 
 	if ((int)strlen(stringAddress) < dataLength) // zabezpieczenie na wypadek gdyby pod podanym adresem nie znajdowalaby sie rzadana liczba znakow
 	{

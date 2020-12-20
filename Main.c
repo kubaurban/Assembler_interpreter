@@ -15,7 +15,7 @@ symulateMemory();
 
 fp = malloc(sizeof(FILE));
 if (fp == NULL) exit(10);
-source = calloc(DEFAULT + 5, sizeof(char));
+source = calloc(MAX_LINE_LENGTH, sizeof(char));
 if (source == NULL) exit(10);
 
 fp = getInput(fp, source, argc, argv);
@@ -28,9 +28,7 @@ saveDataSection(fp);
 saveDirectiveSection(fp);
 fclose(fp);
 
-freeMemory();
-free(source);
-free(fp);
+freeMemory(source, fp);
 
 return 0;
 }

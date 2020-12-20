@@ -74,7 +74,7 @@ void readPAInstructions(FILE* inputf)
 			strcpy(label, token1);
 			strcpy(sign, token2);
 			strcpy(arguments, token3);
-			if (isdigit(*label)) exit(1);			// jest to etykieta niezgodna z zalozeniami (zaczyna sie od cyfry)
+			if (isdigit(*label)) exit(9);			// jest to etykieta niezgodna z zalozeniami (zaczyna sie od cyfry)
 
 			interpretDiv(label, sign, arguments);
 		}
@@ -85,7 +85,7 @@ void readPAInstructions(FILE* inputf)
 	while (!readLineAndCheck(line, inputf))		// pobiera rozkazy i je realizuje
 	{
 		sscanf(line, "%10[ a-zA-Z0-9_] %[A-Z] %255[ a-zA-Z0-9_,()]\n", label, sign, arguments);
-		if (isdigit(*label)) exit(1);				// jest to etykieta niezgodna z zalozeniami (zaczyna sie od cyfry)
+		if (isdigit(*label)) exit(9);				// jest to etykieta niezgodna z zalozeniami (zaczyna sie od cyfry)
 		interpretOrd(label, sign, arguments);
 		memset(line, 0, (MAX_LINE_LENGTH + 1) * sizeof(char));
 	}
@@ -124,7 +124,7 @@ char* handleFileOpenError()
 	char* arg;
 
 	arg = malloc((MAX_LINE_LENGTH + 1) * sizeof(char));
-	if (arg == NULL) exit(1);
+	if (arg == NULL) exit(10);
 
 	printf("Blad odczytu!\nPodaj sciezke wzgledna do pliku tekstowego:\n");
 	fgets(arg, (MAX_LINE_LENGTH + 1) * sizeof(char), stdin);
@@ -138,7 +138,7 @@ int readLineAndCheck(char* buff, FILE* inputf)
 
 	if (result == NULL)
 	{
-		if (!feof(inputf)) exit(1);										// blad w przypadku gdy inputf == NULL, ale nie doszedl do konca pliku
+		if (!feof(inputf)) exit(8);										// blad w przypadku gdy inputf == NULL, ale nie doszedl do konca pliku
 		return 1;														// inputf == NULL poniewaz zakonczyl poprawnie odczyt z calego pliku
 	}
 	if (strcmp(result, "\n") == 0)										// zostala odczytana pusta linia (\n)
@@ -174,7 +174,7 @@ void saveDataSection(FILE* outputf)
 }
 void saveDirectiveSection(FILE* outputf)
 {
-	char* word;
+	char* word = NULL;
 	char byte[3];
 	unsigned int i, j;
 

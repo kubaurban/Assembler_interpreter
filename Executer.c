@@ -72,7 +72,7 @@ void executeProgram()
 
 	programStatusVector[64] = bin[32] = '\0';
 									/*faza wstepna przygotowujaca program do wykonania*/
-	memset(regFlag, 0, 16*sizeof(int));
+	memset(regFlag, 0, 16 * sizeof(int));
 	regFlag[14] = regFlag[15] = 1;
 	memset(programStatusVector, '0', 64);		// wypelnienie zerami rejestru stanu programu
 	DecIntoBinary(bin, (unsigned)getFromRegistry(14));		// zaladowanie do bufora bin binarnej reprezentacji adresu poczatku sekcji rozkazow umieszczonej w rejestrze 14
@@ -135,7 +135,6 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector, int *regFl
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
 		data = getStringFromSection(effAdr, 8);
 		A(reg1, regFlags, data, PSVector); // drugi argument to argument adresowy (przekazany jako pamiec).
-		free(data);
 		break;
 	case 18:
 		commandLength = 4;
@@ -146,7 +145,6 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector, int *regFl
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
 		data = getStringFromSection(effAdr, 8);
 		S(reg1, regFlags, data, PSVector);
-		free(data);
 		break;
 	case 20:
 		commandLength = 4;
@@ -157,7 +155,6 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector, int *regFl
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
 		data = getStringFromSection(effAdr, 8);
 		M(reg1, data, PSVector);
-		free(data);
 		break;
 	case 22:
 		commandLength = 4;
@@ -168,7 +165,6 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector, int *regFl
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
 		data = getStringFromSection(effAdr, 8);
 		D(reg1, data, PSVector);
-		free(data);
 		break;
 	case 24:
 		commandLength = 4;
@@ -179,7 +175,6 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector, int *regFl
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
 		data = getStringFromSection(effAdr, 8);
 		C(reg1, data, PSVector);
-		free(data);
 		break;
 
 	case 224:
@@ -200,7 +195,6 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector, int *regFl
 		effAdr = getEffectiveAddress(reg2, commandHexAddress + 4);
 		data = getStringFromSection(effAdr, 8);
 		L(reg1, data);
-		free(data);
 		regFlags[reg1] = 0;
 		break;
 	case 49:
@@ -222,6 +216,13 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector, int *regFl
 	}
 
 	newAdr = unsignIntoDec(2, PSVector + 32) + commandLength;
+
+	if (PSVector[16] == PSVector[17] && PSVector[16] == '1')
+	{
+		printf("...ExecuteError...");
+	}
+
+	free(data);
 
 	return newAdr;
 }
