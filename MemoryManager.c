@@ -2,13 +2,19 @@
 #include "memory.h"
 
 /**
+* Ilosc pojedynczych komorek pamieci MOZLIWYCH aktualnie do zajecia przez dane w sekcji danych (przy obecnie zaalokowanej pamieci).
+Komorke pamieci rozumiem tutaj jako jeden znak (char) reprezentujacy pojedyncza cyfre szesnastkowa.
+*/
+unsigned short maxDataSectionCellsToTake;
+/**
+* Ilosc pojedynczych komorek pamieci MOZLIWYCH aktualnie do zajecia przez dane rozkazow w sekcji rozkazow (przy obecnie zaalokowanej pamieci).
+Komorke pamieci rozumiem tutaj jako jeden znak (char) reprezentujacy pojedyncza cyfre szesnastkowa.
+*/
+unsigned short maxDirectiveSectionCellsToTake;
+/**
 * Tablica rejestrow numerowanych od 0 do 15, mogaca przechowywac wartosci typu long int.
 */
 long int registry[16];
-unsigned long labelledCommandsExecuted = 0;
-unsigned short maxDataSectionCellsToTake = DEFAULT;
-unsigned short maxDirectiveSectionCellsToTake = DEFAULT;
-unsigned long maxLabelledCommandsToExecute = DEFAULT;
 
 void symulateMemory()
 {
@@ -17,6 +23,11 @@ void symulateMemory()
 
 	firstLabelCommAddress = (struct labelledCommand**)malloc(DEFAULT * sizeof(struct labelledCommand*));
 	ptrToSaveLabel = firstLabelCommAddress; 	// inicjacja dodatkowego wskaznika do wprowadzania nowych etykiet
+
+	labelledCommandsExecuted = 0;
+	maxDataSectionCellsToTake = DEFAULT;
+	maxDirectiveSectionCellsToTake = DEFAULT;
+	maxLabelledCommandsToExecute = DEFAULT;
 }
 void reallocDataSection()
 {
@@ -59,6 +70,38 @@ void freeMemory()
 	free((char*)registry[15]);
 }
 
+void storeInDataSection(char* val)
+{
+	unsigned int j;
+	char* section;
+
+	section = (char*)getFromRegistry(15);
+	j = strlen(val);											// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
+	if (strlen(section) + j >= maxDataSectionCellsToTake)		// sprawdza czy doszlo do przepelnienia
+	{
+		reallocDataSection();
+		section = (char*)getFromRegistry(15);
+	}
+
+	section += strlen(section);									// ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
+	strcat(section, val);										// wlasciwe dodanie wartosci argumentu val do sekcji danych
+}
+void storeInDirectiveSection(char* val)
+{
+	unsigned int j;
+	char* section;
+
+	section = (char*)getFromRegistry(14);
+	j = strlen(val);											// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
+	if (strlen(section) + j >= maxDirectiveSectionCellsToTake)	// sprawdza czy doszlo do przepelnienia
+	{
+		reallocDirectiveSection();
+		section = (char*)getFromRegistry(14);
+	}
+
+	section += strlen(section);									// ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
+	strcat(section, val);										// wlasciwe dodanie kodu rozkazu w argumentu val do sekcji rozkazow
+}
 void modifyData(char* oldDataAddress, char* newData)
 {
 	unsigned int i;
@@ -68,14 +111,6 @@ void modifyData(char* oldDataAddress, char* newData)
 		*(oldDataAddress + i) = *(newData + i);
 	}
 }
-long int getFromRegistry(int which)
-{
-	return registry[which];
-}
-void setRegistryVal(int which, long int val)
-{
-	registry[which] = val;
-};
 char* getStringFromSection(char* stringAddress, int dataLength)
 {
 	char* word;
@@ -94,3 +129,11 @@ char* getStringFromSection(char* stringAddress, int dataLength)
 
 	return word;
 }
+long int getFromRegistry(int which)
+{
+	return registry[which];
+}
+void setRegistryVal(int which, long int val)
+{
+	registry[which] = val;
+};

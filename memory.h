@@ -16,7 +16,7 @@ Wynosi 6, poniewaz maksymalna wartosc liczby do zapisania na 2B to 65 535 - unsi
 */
 #define MAX_LABEL_LENGTH 10
 /**
-* Maksymalna liczba do zapisania na jednym bajcie (uzyta jako wartosc domyslna przy alokacji duzych blokow pamieci).
+* Wartosc domyslna uzyta przy alokacji duzych blokow pamieci.
 */
 #define DEFAULT 255
 
@@ -25,16 +25,6 @@ Wynosi 6, poniewaz maksymalna wartosc liczby do zapisania na 2B to 65 535 - unsi
 * Ilosc aktualnie wykonanych komend z etykieta.
 */
 unsigned long labelledCommandsExecuted;
-/**
-* Ilosc pojedynczych komorek pamieci MOZLIWYCH aktualnie do zajecia przez dane w sekcji danych (przy obecnie zaalokowanej pamieci).
-Komorke pamieci rozumiem tutaj jako jeden znak (char) reprezentujacy pojedyncza cyfre szesnastkowa.
-*/
-unsigned short maxDataSectionCellsToTake;
-/**
-* Ilosc pojedynczych komorek pamieci MOZLIWYCH aktualnie do zajecia przez dane rozkazow w sekcji rozkazow (przy obecnie zaalokowanej pamieci).
-Komorke pamieci rozumiem tutaj jako jeden znak (char) reprezentujacy pojedyncza cyfre szesnastkowa.
-*/
-unsigned short maxDirectiveSectionCellsToTake;
 /**
 * Ilosc komend z etykieta MOZLIWYCH aktualnie do wykonania przez program (przy obecnie zaalokowanej pamieci).
 */
@@ -80,10 +70,6 @@ void reallocLabelledCommands();
 */
 void freeMemory();
 /**
-*Aktualizuje dane o adresie podanym w pierwszym argumencie na nowe dane podane w drugim argumencie.
-*/
-void modifyData(char*, char*);
-/**
 * Zapisuje do sekcji danych nowa wartosc podana w argumencie.
 Adres i-tego elementu w sekcji = adres poczatku sekcji + i-te przesuniecie
 */
@@ -94,6 +80,16 @@ Adres i-tego elementu w sekcji = adres poczatku sekcji + i-te przesuniecie
 */
 void storeInDirectiveSection(char*);
 /**
+*Aktualizuje dane o adresie podanym w pierwszym argumencie na nowe dane podane w drugim argumencie.
+*/
+void modifyData(char*, char*);
+/**
+* Wyjmuje wartosc znajdujaca sie w podanej sekcji pod danym adresem, gdzie:
+Adres = adres poczatku danej sekcji + przesuniecie
+Ostatnim parametrem funkcji jest dlugosc (ilosc znakow) danej, ktora otrzymamy na wyjsciu.
+*/
+char* getStringFromSection(char*, int);
+/**
 * Zwraca wartosc liczbowa znajdujaca sie w i-tym rejestrze.
 */
 long int getFromRegistry(int);
@@ -101,9 +97,3 @@ long int getFromRegistry(int);
 * Zapisuje dana liczbowa do i-tego rejestru.
 */
 void setRegistryVal(int, long int);
-/**
-* Wyjmuje wartosc znajdujaca sie w podanej sekcji pod danym adresem, gdzie:
-Adres = adres poczatku danej sekcji + przesuniecie
-Ostatnim parametrem funkcji jest dlugosc (ilosc znakow) danej, ktora otrzymamy na wyjsciu.
-*/
-char* getStringFromSection(char*, int);

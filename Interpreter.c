@@ -47,38 +47,6 @@ znajduje sie w strukturze ordCode, a zbior wszystkich tych przyporzadkowan znajd
 */
 void giveOrdCode(char*, char*);
 
-void storeInDataSection(char* val)
-{
-	unsigned int j;
-	char* section;
-
-	section = (char*)getFromRegistry(15);
-	j = strlen(val);											// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
-	if (strlen(section) + j >= maxDataSectionCellsToTake)		// sprawdza czy doszlo do przepelnienia
-	{
-		reallocDataSection();
-		section = (char*)getFromRegistry(15);
-	}
-
-	section += strlen(section);									// ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
-	strcat(section, val);										// wlasciwe dodanie wartosci argumentu val do sekcji danych
-}
-void storeInDirectiveSection(char* val)
-{
-	unsigned int j;
-	char* section;
-
-	section = (char*)getFromRegistry(14);
-	j = strlen(val);											// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
-	if (strlen(section) + j >= maxDirectiveSectionCellsToTake)	// sprawdza czy doszlo do przepelnienia
-	{
-		reallocDirectiveSection();
-		section = (char*)getFromRegistry(14);
-	}
-
-	section += strlen(section);									// ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
-	strcat(section, val);										// wlasciwe dodanie kodu rozkazu w argumentu val do sekcji rozkazow
-}
 void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 {
 	unsigned int i, k;

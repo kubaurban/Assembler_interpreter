@@ -1,4 +1,5 @@
-﻿#include "executer.h"
+﻿#include "stdtools.h"
+#include "executer.h"
 #include <ctype.h>
 #include <math.h>
 
