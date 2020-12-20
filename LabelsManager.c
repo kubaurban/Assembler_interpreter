@@ -5,21 +5,22 @@
 
 void saveLabelAsAddress(char label[], int registryNumber, unsigned short bias, char labelArgument[])
 {
-	struct labelledCommand** ptr;
+	struct labelledCommand** ptrArgument, ** ptrToSaveLabel;
 
 	if (labelledCommandsExecuted + 1 >= maxLabelledCommandsToExecute)//sprawdz czy nie doszlo do przepelnienia
 		reallocLabelledCommands();
 
-	ptr = NULL;
+	ptrArgument = NULL;
 	if (*label != '\0')
-		ptr = searchForLabelArgument(label, firstLabelCommAddress);// wyszukuje wsrod dotychczasowo wykonanych komend podanej etykiety (ale zapisanej jako ARGUMENT). Drugi argument funkcji to wskaznik, od ktorego nalezy rozpoczac przeszukiwanie struktury.
+		ptrArgument = searchForLabelArgument(label, firstLabelCommAddress);// wyszukuje wsrod dotychczasowo wykonanych komend podanej etykiety (ale zapisanej jako ARGUMENT). Drugi argument funkcji to wskaznik, od ktorego nalezy rozpoczac przeszukiwanie struktury.
 
-	while (ptr != NULL)											//podmiana jesli etykieta tego rozkazu byla uzyta juz wczesniej jako argument: najpierw uzupelnienie kodu rozkazu w sekcji rozkazow, potem aktualizacja nr rejestru i przesuniecia dla etykiety obecnie interpretowanego rozkazu
+	while (ptrArgument != NULL)											//podmiana jesli etykieta tego rozkazu byla uzyta juz wczesniej jako argument: najpierw uzupelnienie kodu rozkazu w sekcji rozkazow, potem aktualizacja nr rejestru i przesuniecia dla etykiety obecnie interpretowanego rozkazu
 	{
-		fillEmptyAddressInOrderCode(*ptr, registryNumber, bias);
-		ptr = searchForLabelArgument(label, ptr + 1);			//tym razem drugi argument funkcji (wskaznik, od ktorego nalezy rozpoczac przeszukiwanie struktury) to nastepny element wystepujacy po ostatnio znalezionym.
+		fillEmptyAddressInOrderCode(*ptrArgument, registryNumber, bias);
+		ptrArgument = searchForLabelArgument(label, ptrArgument + 1);			//tym razem drugi argument funkcji (wskaznik, od ktorego nalezy rozpoczac przeszukiwanie struktury) to nastepny element wystepujacy po ostatnio znalezionym.
 	}
 
+	ptrToSaveLabel = firstLabelCommAddress + labelledCommandsExecuted; //ustawienie wskaznika na nastepna wolna pamiec zarezerwowana na obiekt typu labelledCommand
 	*ptrToSaveLabel = calloc(1, sizeof(struct labelledCommand));//zaalokuj pamiec na kolejny obiekt labelledCommand i zwroc na niego aktualny wskaznik
 	if (*ptrToSaveLabel == NULL) exit(1);
 
@@ -28,7 +29,6 @@ void saveLabelAsAddress(char label[], int registryNumber, unsigned short bias, c
 	(*ptrToSaveLabel)->bias = bias;								//nadaj nowemu obiektowi przekazane w funkcji przesuniecie "bias"
 	strcpy((*ptrToSaveLabel)->labelArgument, labelArgument);	//nadaj nowemu obiektowi przekazana w funkcji etykiete labelArgument bedaca argumentem rozkazu
 
-	ptrToSaveLabel++;											//przesun wskaznik do zapisu nastepnego obiektu labelledCommand
 	labelledCommandsExecuted++;
 }
 void fillEmptyAddressInOrderCode(struct labelledCommand* ptr, int registryNumber, unsigned short bias)
@@ -55,7 +55,7 @@ struct labelledCommand* searchForLabel(char* label)
 {
 	struct labelledCommand** ptrToSearch;
 
-	for (ptrToSearch = firstLabelCommAddress; ptrToSearch != ptrToSaveLabel; ptrToSearch++)	//ptrToSearch wskazuje na adres pierwszej etykietowanej komendy przechowywanej w pamieci, na ktora wskazuje firsLabelCommAddress
+	for (ptrToSearch = firstLabelCommAddress; ptrToSearch != firstLabelCommAddress + labelledCommandsExecuted; ptrToSearch++)	//ptrToSearch wskazuje na adres pierwszej etykietowanej komendy przechowywanej w pamieci, na ktora wskazuje firsLabelCommAddress
 	{
 		if (strcmp(label, (*ptrToSearch)->label) == 0)	//przegladanie pamieci w celu znalezienia odpowiedniej etykiety komendy
 		{
@@ -68,7 +68,7 @@ struct labelledCommand** searchForLabelArgument(char* label, struct labelledComm
 {
 	struct labelledCommand** ptrToSearch;
 
-	for (ptrToSearch = ptrStart; ptrToSearch != ptrToSaveLabel; ptrToSearch++)	//ptrToSearch najpierw wskazuje na adres pierwszej (wzgledem podanego w funkcji argumentu) etykietowanej komendy przechowywanej w pamieci
+	for (ptrToSearch = ptrStart; ptrToSearch != firstLabelCommAddress + labelledCommandsExecuted; ptrToSearch++)	//ptrToSearch najpierw wskazuje na adres pierwszej (wzgledem podanego w funkcji argumentu) etykietowanej komendy przechowywanej w pamieci
 	{
 		if (strcmp(label, (*ptrToSearch)->labelArgument) == 0)					//przegladanie pamieci w celu znalezienia odpowiedniej etykiety bedacej argumentem komendy
 		{

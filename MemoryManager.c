@@ -22,7 +22,6 @@ void symulateMemory()
 	registry[14] = (long int)calloc(DEFAULT, sizeof(char));
 
 	firstLabelCommAddress = (struct labelledCommand**)malloc(DEFAULT * sizeof(struct labelledCommand*));
-	ptrToSaveLabel = firstLabelCommAddress; 	// inicjacja dodatkowego wskaznika do wprowadzania nowych etykiet
 
 	labelledCommandsExecuted = 0;
 	maxDataSectionCellsToTake = DEFAULT;
@@ -55,13 +54,12 @@ void reallocLabelledCommands()
 	ptrToRealloc = (struct labelledCommand**)realloc(firstLabelCommAddress, (size_t)maxLabelledCommandsToExecute);
 	if (ptrToRealloc == NULL) exit(10);
 	firstLabelCommAddress = ptrToRealloc;
-	ptrToSaveLabel = firstLabelCommAddress + labelledCommandsExecuted;
 }
 void freeMemory()
 {
 	struct labelledCommand** ptr;
 
-	for (ptr = firstLabelCommAddress; ptr != ptrToSaveLabel; ptr++)
+	for (ptr = firstLabelCommAddress; ptr != firstLabelCommAddress + labelledCommandsExecuted; ptr++)
 	{
 		free(*ptr);
 	}

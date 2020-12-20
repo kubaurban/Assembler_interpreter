@@ -32,18 +32,15 @@ unsigned long maxLabelledCommandsToExecute;
 /**
 * Struktura wiazaca ETYKIETE nadana komendzie z ADRESEM (danej w przypadku dyrektyw lub rozkazu w przypadku rozkazów).
 Adres elementu = adres przechowywany w rejestrze (registryNumber) + przesuniecie (bias)
-Tworzone sa odpowiednie wskazniki umozliwiajace dynamiczne zarzadzanie pamiecia oraz wykonywanie operacji na obiektach
-labelledCommand (wszystkie wskazuja na wskaznik typu labelledCommand):
--> firstLabelCommAddress zawsze wskazuje na adres pierwszej etykietowanej komendy przechowywanej w pamieci
--> ptrToSaveLabel wskaznik uzywany do zapisu nowej etykietowanej komendy. Zawsze wskazuje na pierwszy wolny adres
-    (analog. do dataSection i directiveSection)
+Utworzony jest odpowiedni wskaznik umozliwiajacy dynamiczne zarzadzanie pamiecia oraz wykonywanie operacji na obiektach
+labelledCommand: firstLabelCommAddress wskazuje na adres pierwszej etykietowanej komendy przechowywanej w pamieci (analog do zawartosci rej 14 i 15)
 */
 struct labelledCommand {
     char label[MAX_LABEL_LENGTH + 1];
     unsigned short registryNumber;
     unsigned short bias;
     char labelArgument[MAX_LABEL_LENGTH + 1];
-} **firstLabelCommAddress, ** ptrToSaveLabel;
+} **firstLabelCommAddress;
 
 /**
 * Symuluje pamiec operacyjna:
