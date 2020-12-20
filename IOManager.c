@@ -93,9 +93,7 @@ void readPAInstructions(FILE* inputf)
 void readMachineCode(FILE* inputf)
 {
 	char line[MAX_LINE_LENGTH + 1];
-	char* token, * section;
-
-	section = (char*)getFromRegistry(15);
+	char* token;
 
 	while (!readLineAndCheck(line, inputf))		// pobiera kod maszynowy i zapisuje go w sekcji danych
 	{
@@ -103,14 +101,11 @@ void readMachineCode(FILE* inputf)
 
 		while (token)
 		{
-			storeInDataSection(&section, token);
-			section += strlen(token);			// ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
+			storeInDataSection(token);
 			token = strtok(NULL, " \r\n\t");
 		}
 		memset(line, 0, (MAX_LINE_LENGTH + 1) * sizeof(char));
 	}
-
-	section = (char*)getFromRegistry(14);
 
 	while (!readLineAndCheck(line, inputf))		// pobiera kod maszynowy i zapisuje go w sekcji rozkazow
 	{
@@ -118,8 +113,7 @@ void readMachineCode(FILE* inputf)
 
 		while (token)
 		{
-			storeInDirectiveSection(&section, token);
-			section += strlen(token);			// ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
+			storeInDirectiveSection(token);
 			token = strtok(NULL, " \r\n\t");
 		}
 		memset(line, 0, (MAX_LINE_LENGTH + 1) * sizeof(char));

@@ -15,7 +15,7 @@ void symulateMemory()
 	registry[15] = (long int)calloc(DEFAULT, sizeof(char));
 	registry[14] = (long int)calloc(DEFAULT, sizeof(char));
 
-	firstLabelCommAddress = (struct labelledCommand**)calloc(DEFAULT, sizeof(struct labelledCommand*));
+	firstLabelCommAddress = (struct labelledCommand**)malloc(DEFAULT * sizeof(struct labelledCommand*));
 	ptrToSaveLabel = firstLabelCommAddress; 	// inicjacja dodatkowego wskaznika do wprowadzania nowych etykiet
 }
 void reallocDataSection()
@@ -24,7 +24,7 @@ void reallocDataSection()
 
 	maxDataSectionCellsToTake += DEFAULT;
 	tempAlloc = realloc((char*)registry[15], (size_t)maxDataSectionCellsToTake);
-	if (tempAlloc == NULL) exit(1);
+	if (tempAlloc == NULL) exit(100);
 	registry[15] = (long int)tempAlloc;
 }
 void reallocDirectiveSection()
@@ -33,7 +33,7 @@ void reallocDirectiveSection()
 
 	maxDirectiveSectionCellsToTake += DEFAULT;
 	tempAlloc = realloc((char*)registry[14], (size_t)maxDirectiveSectionCellsToTake);
-	if (tempAlloc == NULL) exit(1);
+	if (tempAlloc == NULL) exit(100);
 	registry[14] = (long int)tempAlloc;
 }
 void reallocLabelledCommands()
@@ -42,7 +42,7 @@ void reallocLabelledCommands()
 
 	maxLabelledCommandsToExecute += DEFAULT;
 	ptrToRealloc = (struct labelledCommand**)realloc(firstLabelCommAddress, (size_t)maxLabelledCommandsToExecute);
-	if (ptrToRealloc == NULL) exit(1);
+	if (ptrToRealloc == NULL) exit(10);
 	firstLabelCommAddress = ptrToRealloc;
 	ptrToSaveLabel = firstLabelCommAddress + labelledCommandsExecuted;
 }

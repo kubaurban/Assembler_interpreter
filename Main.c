@@ -4,7 +4,7 @@
 
 		//					PROJEKT POSIADA PE£N¥ DOKUMENTACJÊ FUNKCJI ORAZ WYJAŒNIENIE U¯YWANYCH STA£YCH					\\
 	//		ABY ODCZYTAÆ INFORMACJÊ NA TEMAT KTÓREGOŒ Z POWY¯SZYCH, PROSZÊ NAJECHAÆ KURSOREM NA JEGO WYST¥PIENIE W KODZIE.		\\
-//						 WYŒWIETI SIÊ WÓWCZAS OKIENKO Z DEKLARACJ¥, A TU¯ NAD NI¥ OPIS, O ILE ZOSTA£ ON DODANY						\\
+//						WYŒWIETLI SIÊ WÓWCZAS OKIENKO Z DEKLARACJ¥, A TU¯ NAD NI¥ OPIS, O ILE ZOSTA£ ON DODANY						\\
 
 main(int argc, char* argv[])
 {
@@ -14,9 +14,9 @@ char* source;
 symulateMemory();
 
 fp = malloc(sizeof(FILE));
-if (fp == NULL) exit(1);
+if (fp == NULL) exit(10);
 source = calloc(DEFAULT + 5, sizeof(char));
-if (source == NULL) exit(1);
+if (source == NULL) exit(10);
 
 fp = getInput(fp, source, argc, argv);
 fclose(fp);

@@ -68,7 +68,7 @@ void symulateMemory();
 */
 void reallocDataSection();
 /**
-* Re-alokuje wiecej pamieci (o 255 znakow) na sekcje sterujaca w razie przepelnienia.
+* Re-alokuje wiecej pamieci (o 255 znakow) na sekcje rozkazow w razie przepelnienia.
 */
 void reallocDirectiveSection();
 /**
@@ -84,15 +84,15 @@ void freeMemory();
 */
 void modifyData(char*, char*);
 /**
-* Zapisuje do sekcji danych nowa wartosc.
+* Zapisuje do sekcji danych nowa wartosc podana w argumencie.
 Adres i-tego elementu w sekcji = adres poczatku sekcji + i-te przesuniecie
 */
-void storeInDataSection(char**, char*);
+void storeInDataSection(char*);
 /**
-* Zapisuje do sekcji sterujacej nowy kod rozkazu.
+* Zapisuje do sekcji sterujacej nowy kod rozkazu podany w argumencie.
 Adres i-tego elementu w sekcji = adres poczatku sekcji + i-te przesuniecie
 */
-void storeInDirectiveSection(char**, char*);
+void storeInDirectiveSection(char*);
 /**
 * Zwraca wartosc liczbowa znajdujaca sie w i-tym rejestrze.
 */

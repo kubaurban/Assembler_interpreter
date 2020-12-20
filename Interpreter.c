@@ -47,33 +47,37 @@ znajduje sie w strukturze ordCode, a zbior wszystkich tych przyporzadkowan znajd
 */
 void giveOrdCode(char*, char*);
 
-void storeInDataSection(char** dest, char* val)
+void storeInDataSection(char* val)
 {
 	unsigned int j;
 	char* section;
 
 	section = (char*)getFromRegistry(15);
-	j = strlen(val);														// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
-	if (strlen(section) + j >= maxDataSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
+	j = strlen(val);											// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
+	if (strlen(section) + j >= maxDataSectionCellsToTake)		// sprawdza czy doszlo do przepelnienia
 	{
 		reallocDataSection();
-		*dest = (char*)getFromRegistry(15);
+		section = (char*)getFromRegistry(15);
 	}
-	strcat(*dest, val);											// wlasciwe dodanie wartosci argumentu val do sekcji danych
+
+	section += strlen(section);									// ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
+	strcat(section, val);										// wlasciwe dodanie wartosci argumentu val do sekcji danych
 }
-void storeInDirectiveSection(char** dest, char* val)
+void storeInDirectiveSection(char* val)
 {
 	unsigned int j;
 	char* section;
 
 	section = (char*)getFromRegistry(14);
-	j = strlen(val);														// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
-	if (strlen(section) + j >= maxDirectiveSectionCellsToTake) // sprawdza czy nie doszlo do przepelnienia
+	j = strlen(val);											// zmienna j przechowuje dlugosc napisu przekazywanego w argumencie
+	if (strlen(section) + j >= maxDirectiveSectionCellsToTake)	// sprawdza czy doszlo do przepelnienia
 	{
 		reallocDirectiveSection();
-		*dest = (char*)getFromRegistry(14);
+		section = (char*)getFromRegistry(14);
 	}
-	strcat(*dest, val);											// wlasciwe dodanie kodu rozkazu w argumentu val do sekcji rozkazow
+
+	section += strlen(section);									// ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
+	strcat(section, val);										// wlasciwe dodanie kodu rozkazu w argumentu val do sekcji rozkazow
 }
 void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 {
@@ -83,7 +87,7 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 	* Wykorzystuje go przede wszystkim, aby wyciac odpowiedni krotszy napis z dluzszego napisu.
 	*/
 	char buffer2[MAX_LABEL_LENGTH + 1];
-	char* hex, * temp1, * section;
+	char* hex, * temp1;
 	/*
 	* Wypelniona ~ tablica emptyWord reprezentuje zarezerwowana przez dyrektywe DS pamiec 4 bajtow.
 	*/
@@ -96,9 +100,6 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 
 	memset(buffer2, 0, MAX_LABEL_LENGTH + 1);
 
-	section = (char*)getFromRegistry(15);
-	section += strlen(section);		    //ustawienie wskaznika do zapisu na ostatni wolny adres w sekcji
-
 	if (temp1 == NULL)	// na podstawie informacji, czy w argumencie dyrektywy znajduje sie znak '*' mozemy obsluge dyrektyw podzielic na dwa bloki:
 	{
 		// 1 BLOK
@@ -110,13 +111,13 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 			strncat(buffer2, divArgs + N + 1, strlen(divArgs) - N - 2); // wycina fragment <liczba_calkowita> do buffer2
 
 			hex = intoHex(buffer2, 8);
-			storeInDataSection(&section, hex);
+			storeInDataSection(hex);
 			free(hex);
 		}
 
 		else								// OBSLUGA DYREKTYW POSTACI: <etykieta> DS INTEGER
 		{
-			storeInDataSection(&section, emptyWord8);
+			storeInDataSection(emptyWord8);
 		}
 	}
 
@@ -137,7 +138,7 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 			for (i = 0; i < k; i++)
 			{
 				hex = intoHex(buffer2, 8);
-				storeInDataSection(&section, hex);
+				storeInDataSection(hex);
 				free(hex);
 			}
 		}
@@ -146,7 +147,7 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 		{
 			for (i = 0; i < k; i++)
 			{
-				storeInDataSection(&section, emptyWord8);
+				storeInDataSection(emptyWord8);
 			}
 		}
 	}
@@ -165,7 +166,7 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 	* Wykorzystuje go przede wszystkim, aby wyciac odpowiedni krotszy napis z dluzszego napisu.
 	*/
 	char buffer2[MAX_LABEL_LENGTH + 1];
-	char* hex, * temp1, * temp2, * section;
+	char* hex, * temp1, * temp2;
 	struct labelledCommand* ptr;
 
 	ordLabel = deleteSpaces(ordLabel);
@@ -337,9 +338,7 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 		free(temp1);
 	}
 
-	section = (char*)getFromRegistry(14);
-	section += strlen(section);
-	storeInDirectiveSection(&section, buffer);
+	storeInDirectiveSection(buffer);
 }
 
 void giveOrdCode(char* buff, char* ordSign)
@@ -358,7 +357,7 @@ void giveOrdCode(char* buff, char* ordSign)
 }
 char* intoHex(char* dec, int hexBitAmount)
 {
-	char* word = malloc((hexBitAmount + 1) * sizeof(char));
+	char* word = calloc((hexBitAmount + 1), sizeof(char));
 	if (word == NULL) exit(1);
 
 	switch (hexBitAmount)
