@@ -7,7 +7,9 @@ void saveLabelAsAddress(char label[], int registryNumber, unsigned short bias, c
 	struct labelledCommand** ptrArgument, ** ptrToSaveLabel;
 
 	if (labelledCommandsExecuted + 1 >= maxLabelledCommandsToExecute)		//sprawdz czy nie doszlo do przepelnienia
+	{
 		reallocLabelledCommands();
+	}
 
 	ptrArgument = NULL;
 	if (*label != '\0')

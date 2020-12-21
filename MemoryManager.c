@@ -21,19 +21,19 @@ void symulateMemory()
 	registry[15] = (long int)calloc(DEFAULT, sizeof(char));
 	registry[14] = (long int)calloc(DEFAULT, sizeof(char));
 
-	firstLabelCommAddress = (struct labelledCommand**)malloc(DEFAULT * sizeof(struct labelledCommand*));
+	firstLabelCommAddress = (struct labelledCommand**)malloc((DEFAULT/5) * sizeof(struct labelledCommand*));
 
 	labelledCommandsExecuted = 0;
 	maxDataSectionCellsToTake = DEFAULT;
 	maxDirectiveSectionCellsToTake = DEFAULT;
-	maxLabelledCommandsToExecute = DEFAULT;
+	maxLabelledCommandsToExecute = DEFAULT/5;
 }
 void reallocDataSection()
 {
 	void* tempAlloc;
 
 	maxDataSectionCellsToTake += DEFAULT;
-	tempAlloc = realloc((char*)registry[15], (size_t)maxDataSectionCellsToTake);
+	tempAlloc = realloc((char*)registry[15], (size_t)maxDataSectionCellsToTake * sizeof(char));
 	if (tempAlloc == NULL) exit(100);
 	registry[15] = (long int)tempAlloc;
 }
@@ -42,7 +42,7 @@ void reallocDirectiveSection()
 	void* tempAlloc;
 
 	maxDirectiveSectionCellsToTake += DEFAULT;
-	tempAlloc = realloc((char*)registry[14], (size_t)maxDirectiveSectionCellsToTake);
+	tempAlloc = realloc((char*)registry[14], (size_t)maxDirectiveSectionCellsToTake * sizeof(char));
 	if (tempAlloc == NULL) exit(100);
 	registry[14] = (long int)tempAlloc;
 }
@@ -50,8 +50,8 @@ void reallocLabelledCommands()
 {
 	struct labelledCommand** ptrToRealloc;
 
-	maxLabelledCommandsToExecute += DEFAULT;
-	ptrToRealloc = (struct labelledCommand**)realloc(firstLabelCommAddress, (size_t)maxLabelledCommandsToExecute);
+	maxLabelledCommandsToExecute += DEFAULT/10;
+	ptrToRealloc = (struct labelledCommand**)realloc(firstLabelCommAddress, (size_t)maxLabelledCommandsToExecute * sizeof(struct labelledCommand*));
 	if (ptrToRealloc == NULL) exit(100);
 	firstLabelCommAddress = ptrToRealloc;
 }
