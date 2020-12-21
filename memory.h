@@ -1,24 +1,24 @@
 /**
-*Maksymalna dlugosc ciagu znakow mogaca przechowywac znak komendy.
+* Maksymalna dlugosc ciagu znakow mogaca przechowywac znak komendy.
 */
 #define MAX_SIGN_LENGTH 2
 /**
-*Maksymalna dlugosc ciagu znakow mogaca przechowywac przesuniecie.
-Wynosi 6, poniewaz maksymalna wartosc liczby do zapisania na 2B to 65 535 - unsigned short.
+* Maksymalna dlugosc ciagu znakow mogaca przechowywac przesuniecie.
+* Wynosi 6, poniewaz maksymalna wartosc liczby do zapisania na 2B to 65 535 - unsigned short.
 */
 #define MAX_BIAS_LENGTH 6
 /**
-*Maksymalna dlugosc ciagu znakow mogaca przechowywac pelny kod maszynowy jednej komendy.
+* Maksymalna dlugosc ciagu znakow mogaca przechowywac pelny kod maszynowy jednej komendy.
 */
 #define MAX_CODE_LENGTH 8
 /**
-*Maksymalna dlugosc ciagu znakow mogaca przechowywac etykiete.
+* Maksymalna dlugosc ciagu znakow mogaca przechowywac etykiete.
 */
 #define MAX_LABEL_LENGTH 10
 /**
 * Wartosc domyslna uzyta przy alokacji duzych blokow pamieci.
 */
-#define DEFAULT 255
+#define DEFAULT 250
 
 
 /**
@@ -31,9 +31,9 @@ unsigned long labelledCommandsExecuted;
 unsigned long maxLabelledCommandsToExecute;
 /**
 * Struktura wiazaca ETYKIETE nadana komendzie z ADRESEM (danej w przypadku dyrektyw lub rozkazu w przypadku rozkazów).
-Adres elementu = adres przechowywany w rejestrze (registryNumber) + przesuniecie (bias)
-Utworzony jest odpowiedni wskaznik umozliwiajacy dynamiczne zarzadzanie pamiecia oraz wykonywanie operacji na obiektach
-labelledCommand: firstLabelCommAddress wskazuje na adres pierwszej etykietowanej komendy przechowywanej w pamieci (analog do zawartosci rej 14 i 15)
+* Adres elementu = adres przechowywany w rejestrze (registryNumber) + przesuniecie (bias)
+* Utworzony jest odpowiedni wskaznik umozliwiajacy dynamiczne zarzadzanie pamiecia oraz wykonywanie operacji na obiektach
+* labelledCommand: firstLabelCommAddress wskazuje na adres pierwszej etykietowanej komendy przechowywanej w pamieci (analog do zawartosci rej 14 i 15)
 */
 struct labelledCommand {
     char label[MAX_LABEL_LENGTH + 1];
@@ -51,40 +51,40 @@ struct labelledCommand {
 */
 void symulateMemory();
 /**
-* Re-alokuje wiecej pamieci (o 255 znakow) na sekcje danych w razie przepelnienia.
+* Re-alokuje wiecej pamieci (o wartosc domyslna DEFAULT znakow) na sekcje danych w razie przepelnienia.
 */
 void reallocDataSection();
 /**
-* Re-alokuje wiecej pamieci (o 255 znakow) na sekcje rozkazow w razie przepelnienia.
+* Re-alokuje wiecej pamieci (o wartosc domyslna DEFAULT znakow) na sekcje rozkazow w razie przepelnienia.
 */
 void reallocDirectiveSection();
 /**
-* Re-alokuje wiecej pamieci (o 255 etykietowanych komend) na etykietowane komendy w razie przepelnienia.
+* Re-alokuje wiecej pamieci (o wartosc domyslna DEFAULT etykietowanych komend) na etykietowane komendy w razie przepelnienia.
 */
 void reallocLabelledCommands();
 /**
-*Zwalnia alokowana podczas trwania programu pamiec: obiekty typu labelledCommand oraz zawartosci rejestrow 14 i 15.
+* Zwalnia alokowana podczas trwania programu pamiec: obiekty typu labelledCommand oraz zawartosci rejestrow 14 i 15.
 * Dodatkowo zwalnia w odpowiedniej kolejnosci 2 bloki pamieci, na ktore wskazuja przekazywane w argumentach wskazniki.
 */
 void freeMemory(char*, FILE*);
 /**
 * Zapisuje do sekcji danych nowa wartosc podana w argumencie.
-Adres i-tego elementu w sekcji = adres poczatku sekcji + i-te przesuniecie
+* Adres i-tego elementu w sekcji = adres poczatku sekcji + i-te przesuniecie
 */
 void storeInDataSection(char*);
 /**
 * Zapisuje do sekcji sterujacej nowy kod rozkazu podany w argumencie.
-Adres i-tego elementu w sekcji = adres poczatku sekcji + i-te przesuniecie
+* Adres i-tego elementu w sekcji = adres poczatku sekcji + i-te przesuniecie
 */
 void storeInDirectiveSection(char*);
 /**
-*Aktualizuje dane o adresie podanym w pierwszym argumencie na nowe dane podane w drugim argumencie.
+* Aktualizuje dane o adresie podanym w pierwszym argumencie na nowe dane podane w drugim argumencie.
 */
 void modifyData(char*, char*);
 /**
-* Wyjmuje wartosc znajdujaca sie w podanej sekcji pod danym adresem, gdzie:
-Adres = adres poczatku danej sekcji + przesuniecie
-Ostatnim parametrem funkcji jest dlugosc (ilosc znakow) danej, ktora otrzymamy na wyjsciu.
+* Wyjmuje wartosc znajdujaca sie w sekcji pod danym adresem, gdzie:
+* Adres = adres poczatku danej sekcji + przesuniecie
+* Drugim parametrem funkcji jest dlugosc (ilosc znakow) danej, ktora otrzymamy na wyjsciu.
 */
 char* getStringFromSection(char*, int);
 /**

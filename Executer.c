@@ -4,29 +4,31 @@
 #include <math.h>
 
 /*
-* Funkcja jako pierwszy argument przyjmuje rejestr stanu programu. Modyfikuje dane okreslone za pomoc¹ flagi
+* Funkcja jako pierwszy argument przyjmuje rejestr stanu programu. Modyfikuje dane okreslone za pomoca flagi
 (1 - czesc adresowa, 0 - znak ostatniej operacji) na podany w trzecim argumencie ciag bitow.
 */
 void changeVector(char* vector, int flag, char* newBinaryData);
 /*
 * Funkcja wykonuje rozkaz o podanej w pierwszym argumencie tresci. Domyslnie przekazywany jest rozkaz o dlugosci 4B,
-wiec jesli analizowany rozkaz ma dlugosc 2B to moze zdarzyc sie ze pozostala czesc rozkazu jest zbedna.
-Nie przeszkadza to jednak w dalszym wykonaniu programu.
+wiec jesli analizowany rozkaz ma dlugosc 2B to moze zdarzyc sie, ze druga polowa rozkazu jest zbedna.
+Nie przeszkadza to jednak w dalszym wykonaniu programu, natomiast upraszcza implementacje funkcji.
 */
 unsigned long executeCommand(char* commandAddress, char* PSVector, int* regFlags);
 /*
-* Zwraca tzw. efektywny adres wyliczany ze wzoru adres efektywny = adres + przesuniecie.
+* Zwraca tzw. efektywny adres wyliczany ze wzoru adres efektywny = adres(pobierany z rejestru) + przesuniecie.
+* Funkcja w pierwszym argumencie przyjmuje numer rejestru, z ktorego nalezy pobrac adres, a w drugim argumencie
+* wartosc przesuniecia w postaci szesnastkowej.
 */
 char* getEffectiveAddress(int reg, char* adr);
 /*
 * Zamienia liczbe podana w drugim argumencie (system dziesietny) na liczbe w systemie dwojkowym - format 32 bitowy.
-Otrzymana liczbe binarnie zapisuje w przekazywanej w drugim argumencie tablicy.
+Otrzymana liczbe binarnie zapisuje w przekazywanej w pierwszym argumencie tablicy.
 */
-void DecIntoBinary(char bin[], unsigned long int number);
+void decIntoBinary(char bin[], unsigned long int number);
 /*
 * Zamienia liczbe z dowolnego systemu (nalezy baze tego systemu podac w pierwszym argumencie) na liczbe dziesietna bez znaku.
 */
-unsigned long unsignIntoDec(int otherSystem, char* bin);
+unsigned long unsignIntoDec(int otherSystem, char* number);
 /*
 * Zamienia liczbe z dowolnego systemu (nalezy baze tego systemu podac w pierwszym argumencie) na liczbe dziesietna ze znakiem.
 */
@@ -53,7 +55,7 @@ void LA(int reg1, char* adr);
 
 /*
 * Funkcja odpowiada za ustawienie odpowiednich bitow rejestru stanu programu reprezentujacych znak ostatniej operacji arytmetycznej.
-* (ewentualnie ustawia kombinacje bitow "11" w przypadku bledu)
+* (ewentualnie ustawia kombinacje bitow "11" w przypadku wystapienia bledu)
 */
 void changeSignAfterArithmeticCommand(long result, char* PSVector, int status);
 /*
@@ -64,29 +66,32 @@ int isOverflow(long long result);
 
 void executeProgram()
 {
-	char programStatusVector[65];	//8 bajtowy rejestr stanu programu
-	char bin[33];					// bufor na binarna reprezentacje adresu nast. rozkazu przechowywanego w rejestrze stanu programu
+	char programStatusVector[65];	// 8 bajtowy rejestr stanu programu
+	char bin[33];					// bufor na binarna reprezentacje adresu nastepnego rozkazu przechowywanego w rejestrze stanu programu
 	char* adr, * cmd;
 	unsigned long newAdr;
-	int regFlag[16];
+	int regFlag[16];				// rejestr flag odpowiada kazdemu rejestrowi, zawiera flage informujaca o tym czy w odpowiadajacym rejestrze znajduje sie adres czy wartosc danej
 
 	programStatusVector[64] = bin[32] = '\0';
+									
 									/*faza wstepna przygotowujaca program do wykonania*/
 	memset(regFlag, 0, 16 * sizeof(int));
 	regFlag[14] = regFlag[15] = 1;
-	memset(programStatusVector, '0', 64);		// wypelnienie zerami rejestru stanu programu
-	DecIntoBinary(bin, (unsigned)getFromRegistry(14));		// zaladowanie do bufora bin binarnej reprezentacji adresu poczatku sekcji rozkazow umieszczonej w rejestrze 14
+	memset(programStatusVector, '0', 64);					// wypelnienie zerami rejestru stanu programu
+	decIntoBinary(bin, (unsigned)getFromRegistry(14));		// zaladowanie do bufora bin binarnej reprezentacji adresu poczatku sekcji rozkazow umieszczonej w rejestrze 14
 	changeVector(programStatusVector, 1, bin);
 	adr = (char*)unsignIntoDec(2, programStatusVector + 32);
-
+									
+									/*faza wykonywania kolejnych instrukcji programu*/
 	while (*adr != '\0')
 	{
 		cmd = getStringFromSection(adr, 8);
 		newAdr = executeCommand(cmd, programStatusVector, regFlag);
 		free(cmd);
-		DecIntoBinary(bin, newAdr);
-		changeVector(programStatusVector, 1, bin);
-		adr = (char*)unsignIntoDec(2, programStatusVector + 32);
+
+		decIntoBinary(bin, newAdr);
+		changeVector(programStatusVector, 1, bin);				// ustawienie nowego adresu w rejestrze stanu programu
+		adr = (char*)unsignIntoDec(2, programStatusVector + 32);// odczytanie adresu nastepnego rozkazu do wykonania z rej. stanu programu 
 	}
 }
 void changeVector(char* vector, int flag, char* newBinaryData)
@@ -116,12 +121,12 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector, int *regFl
 	r1[1] = r2[1] = code[2] = '\0';
 	data = effAdr = NULL;
 
-	strncpy(code, commandHexAddress, 2);
+	strncpy(code, commandHexAddress, 2);	// wyodrebnienie kodu rozkazu
 
-	strncpy(r1, commandHexAddress + 2, 1);
+	strncpy(r1, commandHexAddress + 2, 1);	// wyodrebnienie pierwszego rejestru
 	reg1 = (int)(unsignIntoDec(16, r1));
 
-	strncpy(r2, commandHexAddress + 3, 1);
+	strncpy(r2, commandHexAddress + 3, 1);	// wyodrebnienie drugiego rejestru
 	reg2 = (int)(unsignIntoDec(16, r2));
 
 	switch ((int)unsignIntoDec(16, code))
@@ -215,9 +220,9 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector, int *regFl
 		break;
 	}
 
-	newAdr = unsignIntoDec(2, PSVector + 32) + commandLength;
+	newAdr = unsignIntoDec(2, PSVector + 32) + commandLength;// ustawienie nowego adresu nastepnego rozkazu do wykonania
 
-	if (PSVector[16] == PSVector[17] && PSVector[16] == '1')
+	if (PSVector[16] == PSVector[17] && PSVector[16] == '1') // sprawdzenie czy wystapil blad w czasie operacji arytmetycznej
 	{
 		printf("...ExecuteError...");
 	}
@@ -238,7 +243,7 @@ char* getEffectiveAddress(int reg, char* adr)
 
 	return (char*)getFromRegistry(reg) + bias;
 }
-void DecIntoBinary(char bin[], unsigned long int number) //format 32 bitowy
+void decIntoBinary(char bin[], unsigned long int number) //format 32 bitowy
 {
 	char temp[2];
 	int i = 0;
@@ -304,6 +309,7 @@ void AR(int reg1, int reg2, int* regFlags, char* PSVector)
 	int flag = 0;
 	long long arg1 = (long long)getFromRegistry(reg1);
 	long long arg2 = (long long)getFromRegistry(reg2);
+
 	if (regFlags[reg2] == 1) arg1 *= 2;
 	if (regFlags[reg1] == 1) arg2 *= 2;
 	result = arg1 + arg2;
@@ -453,7 +459,6 @@ void C(int reg1, char* adr, char* PSVector)
 }
 unsigned long J(char* adr)
 {
-
 	return (unsigned long)adr;
 }
 unsigned long JZ(char* adr, char* PSVector)
@@ -463,7 +468,9 @@ unsigned long JZ(char* adr, char* PSVector)
 	strncpy(sign, PSVector + 16, 2);
 	sign[2] = '\0';
 	if (strcmp(sign, "00") == 0)
+	{
 		return (unsigned long)adr;
+	}
 	return unsignIntoDec(2, PSVector + 32) + 8;
 }
 unsigned long JP(char* adr, char* PSVector)
@@ -473,7 +480,9 @@ unsigned long JP(char* adr, char* PSVector)
 	strncpy(sign, PSVector + 16, 2);
 	sign[2] = '\0';
 	if (strcmp(sign, "01") == 0)
+	{
 		return (unsigned long)adr;
+	}
 	return unsignIntoDec(2, PSVector + 32) + 8;
 }
 unsigned long JN(char* adr, char* PSVector)
@@ -483,7 +492,9 @@ unsigned long JN(char* adr, char* PSVector)
 	strncpy(sign, PSVector + 16, 2);
 	sign[2] = '\0';
 	if (strcmp(sign, "10") == 0)
+	{
 		return (unsigned long)adr;
+	}
 	return unsignIntoDec(2, PSVector + 32) + 8;
 }
 void LR(int reg1, int reg2)

@@ -6,21 +6,21 @@ void saveLabelAsAddress(char label[], int registryNumber, unsigned short bias, c
 {
 	struct labelledCommand** ptrArgument, ** ptrToSaveLabel;
 
-	if (labelledCommandsExecuted + 1 >= maxLabelledCommandsToExecute)//sprawdz czy nie doszlo do przepelnienia
+	if (labelledCommandsExecuted + 1 >= maxLabelledCommandsToExecute)		//sprawdz czy nie doszlo do przepelnienia
 		reallocLabelledCommands();
 
 	ptrArgument = NULL;
 	if (*label != '\0')
-		ptrArgument = searchForLabelArgument(label, firstLabelCommAddress);// wyszukuje wsrod dotychczasowo wykonanych komend podanej etykiety (ale zapisanej jako ARGUMENT). Drugi argument funkcji to wskaznik, od ktorego nalezy rozpoczac przeszukiwanie struktury.
+		ptrArgument = searchForLabelArgument(label, firstLabelCommAddress);	// wyszukuje wsrod dotychczasowo wykonanych komend podanej etykiety (ale zapisanej jako ARGUMENT). Drugi argument funkcji to wskaznik, od ktorego nalezy rozpoczac przeszukiwanie struktury.
 
-	while (ptrArgument != NULL)											//podmiana jesli etykieta tego rozkazu byla uzyta juz wczesniej jako argument: najpierw uzupelnienie kodu rozkazu w sekcji rozkazow, potem aktualizacja nr rejestru i przesuniecia dla etykiety obecnie interpretowanego rozkazu
+	while (ptrArgument != NULL)												//podmiana jesli etykieta tego rozkazu byla uzyta juz wczesniej jako argument: najpierw uzupelnienie kodu rozkazu w sekcji rozkazow, potem aktualizacja nr rejestru i przesuniecia dla etykiety obecnie interpretowanego rozkazu
 	{
 		fillEmptyAddressInOrderCode(*ptrArgument, registryNumber, bias);
 		ptrArgument = searchForLabelArgument(label, ptrArgument + 1);			//tym razem drugi argument funkcji (wskaznik, od ktorego nalezy rozpoczac przeszukiwanie struktury) to nastepny element wystepujacy po ostatnio znalezionym.
 	}
 
-	ptrToSaveLabel = firstLabelCommAddress + labelledCommandsExecuted; //ustawienie wskaznika na nastepna wolna pamiec zarezerwowana na obiekt typu labelledCommand
-	*ptrToSaveLabel = calloc(1, sizeof(struct labelledCommand));//zaalokuj pamiec na kolejny obiekt labelledCommand i zwroc na niego aktualny wskaznik
+	ptrToSaveLabel = firstLabelCommAddress + labelledCommandsExecuted;		//ustawienie wskaznika na nastepna wolna pamiec zarezerwowana na obiekt typu labelledCommand
+	*ptrToSaveLabel = calloc(1, sizeof(struct labelledCommand));			//zaalokuj pamiec na kolejny obiekt labelledCommand i zwroc na niego aktualny wskaznik
 	if (*ptrToSaveLabel == NULL) exit(10);
 
 	strcpy((*ptrToSaveLabel)->label, label);					//nadaj nowemu obiektowi przekazana w funkcji etykiete "label"

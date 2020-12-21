@@ -11,13 +11,12 @@ struct ordCode
 };
 
 /**
-* Interpretuje dyrektywe rezerwacji pamieci z jezyka pseudoassemblera na kod maszynowy:
--> zapisuje dana do sekcji danych/rezerwuje w sekcji danych pamiec na dana
--> zapisuje dana w kodzie maszynowym do pliku.
+* Interpretuje dyrektywe rezerwacji pamieci z jezyka pseudoassemblera na kod maszynowy i zapisuje dana 
+* do sekcji danych/rezerwuje w sekcji danych pamiec na dana.
 */
 void interpretDiv(char[], char*, char*);
 /**
 * Interpretuje rozkaz (operacji arytmetycznej, przesylania danych lub skoku)
-z jezyka pseudoassemblera na kod maszynowy. Zapisuje rozkaz w kodzie maszynowym do pliku.
+* z jezyka pseudoasemblera na kod maszynowy i zapisuje go w sekcji rozkazow.
 */
 void interpretOrd(char[], char*, char*);

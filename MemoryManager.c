@@ -3,12 +3,12 @@
 
 /**
 * Ilosc pojedynczych komorek pamieci MOZLIWYCH aktualnie do zajecia przez dane w sekcji danych (przy obecnie zaalokowanej pamieci).
-Komorke pamieci rozumiem tutaj jako jeden znak (char) reprezentujacy pojedyncza cyfre szesnastkowa.
+* Komorke pamieci rozumiem tutaj jako jeden znak (char) reprezentujacy pojedyncza cyfre szesnastkowa.
 */
 unsigned short maxDataSectionCellsToTake;
 /**
 * Ilosc pojedynczych komorek pamieci MOZLIWYCH aktualnie do zajecia przez dane rozkazow w sekcji rozkazow (przy obecnie zaalokowanej pamieci).
-Komorke pamieci rozumiem tutaj jako jeden znak (char) reprezentujacy pojedyncza cyfre szesnastkowa.
+* Komorke pamieci rozumiem tutaj jako jeden znak (char) reprezentujacy pojedyncza cyfre szesnastkowa.
 */
 unsigned short maxDirectiveSectionCellsToTake;
 /**
