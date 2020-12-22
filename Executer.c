@@ -220,12 +220,7 @@ unsigned long executeCommand(char* commandHexAddress, char* PSVector, int *regFl
 		break;
 	}
 
-	newAdr = unsignIntoDec(2, PSVector + 32) + commandLength;// ustawienie nowego adresu nastepnego rozkazu do wykonania
-
-	if (PSVector[16] == PSVector[17] && PSVector[16] == '1') // sprawdzenie czy wystapil blad w czasie operacji arytmetycznej
-	{
-		printf("...ExecuteError...");
-	}
+	newAdr = unsignIntoDec(2, PSVector + 32) + commandLength; // ustawienie nowego adresu nastepnego rozkazu do wykonania
 
 	free(data);
 
@@ -523,6 +518,7 @@ void changeSignAfterArithmeticCommand(long result, char* PSVector, int status)
 	if (status == 0)						// flaga statusu 0 informuje o wystapieniu bledu
 	{
 		changeVector(PSVector, 0, "11");
+		printf("...ExecuteError...");		// sprawdzenie czy wystapil blad w czasie operacji arytmetycznej
 	}
 	else
 	{

@@ -9,7 +9,7 @@
 main(int argc, char* argv[])
 {
 FILE* fp;
-char* source;
+char* source, * temp;
 
 symulateMemory();
 
@@ -19,6 +19,15 @@ source = calloc(MAX_LINE_LENGTH, sizeof(char));
 if (source == NULL) exit(10);
 
 fp = getInput(fp, source, argc, argv);
+fclose(fp);
+
+temp = calloc(strlen(source) - 4, sizeof(char));
+if (temp == NULL) exit(10);
+strcpy(temp, source);
+
+fp = fopen(strcat(temp, "_machine.txt"), "w");
+saveDataSection(fp);
+saveDirectiveSection(fp);
 fclose(fp);
 
 executeProgram();

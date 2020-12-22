@@ -5,7 +5,7 @@
 
 FILE* getInput(FILE* inputf, char* source, int argc, char* argv[])
 {
-	char temp[DEFAULT + 1];
+	char temp[MAX_LINE_LENGTH + 1];
 	char* token1, * token2, * line;
 
 	if (argc < 2)						// nie podano sciezki wzglednej do pliku z instrukcjami pseudoasemblera (brak argumentów)
@@ -39,13 +39,18 @@ FILE* getInput(FILE* inputf, char* source, int argc, char* argv[])
 	}
 
 
-	if (token1 != NULL && strcmp(token1, "msck_code") == 0)
+	if (token1 == NULL || strcmp(token1, "psa_code") == 0)
+	{
+		readPAInstructions(inputf);
+	}
+	else if(strcmp(token1, "msck_code") == 0)
 	{
 		readMachineCode(inputf);
 	}
 	else
 	{
-		readPAInstructions(inputf);
+		printf("B³êdny format");
+		exit(1);
 	}
 
 	return inputf;
