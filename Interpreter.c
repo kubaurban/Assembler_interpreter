@@ -2,6 +2,7 @@
 #include "interpreter.h"
 #include "memory.h"
 #include "labelcom.h"
+#include <time.h>
 /**
 *Dlugosc slowa INTEGER.
 */
@@ -50,11 +51,12 @@ void giveOrdCode(char*, char*);
 void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 {
 	unsigned int i, k;
+	short random;
 	/*
-	* buffer2 to bufor roboczy uzywany tam, gdzie wczytywany do niego string nie wymaga wiecej niz MAX_LABEL_LENGTH (10) znakow.
+	* buffer2 to bufor roboczy uzywany tam, gdzie wczytywany do niego string nie wymaga wiecej niz 10 znakow.
 	* Wykorzystuje go przede wszystkim, aby wyciac odpowiedni krotszy napis z dluzszego napisu.
 	*/
-	char buffer2[MAX_LABEL_LENGTH + 1];
+	char buffer2[11];
 	char* hex, * temp1;
 	/*
 	* Wypelniona ~ tablica emptyWord reprezentuje zarezerwowana przez dyrektywe DS pamiec 4 bajtow.
@@ -66,15 +68,17 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 
 	temp1 = strchr(divArgs, 42);		//zwraca wskaznik na pozycje gdzie znajduje sie znak '*' (kod ASCII = 42) lub wartosc NULL jesli nie wystepuje
 
-	memset(buffer2, 0, MAX_LABEL_LENGTH + 1);
+	memset(buffer2, 0, 11);
 
 	if (temp1 == NULL)	// na podstawie informacji, czy w argumencie dyrektywy znajduje sie znak '*' mozemy obsluge dyrektyw podzielic na dwa bloki:
 	{
-		// 1 BLOK
+						// 1 BLOK
 
-		if (strcmp(divSign, "DC") == 0)		// OBSLUGA DYREKTYW POSTACI: <etykieta> DC INTEGER(<liczba_calkowita>)
+		if (strcmp(divSign, "DC") == 0)			// OBSLUGA DYREKTYW POSTACI: <etykieta> DC INTEGER(<liczba_calkowita>)
 		{
-			if (strchr(divArgs, 41) == NULL) exit(9);					// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+			if (strncmp(divArgs, "INTEGER", N) != 0) exit(9);
+			if (*(divArgs + N) != '(') exit(9);						// jesli nie otwarto nawiasu przy podawaniu argumentu przerwij program z kodem 9
+			if (strchr(divArgs, 41) == NULL) exit(9);					// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 9
 
 			strncat(buffer2, divArgs + N + 1, strlen(divArgs) - N - 2); // wycina fragment <liczba_calkowita> do buffer2
 
@@ -83,9 +87,16 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 			free(hex);
 		}
 
-		else								// OBSLUGA DYREKTYW POSTACI: <etykieta> DS INTEGER
+		else if (strcmp(divSign, "DS") == 0)	// OBSLUGA DYREKTYW POSTACI: <etykieta> DS INTEGER
 		{
+			if (strcmp(divArgs, "INTEGER") != 0) exit(9);
+
 			storeInDataSection(emptyWord8);
+		}
+
+		else									// blad w skladni
+		{
+			exit(9);
 		}
 	}
 
@@ -94,29 +105,57 @@ void interpretDiv(char divLabel[], char* divSign, char* divArgs)
 	{
 		strncat(buffer2, divArgs, strlen(divArgs) - strlen(temp1)); // wycina fragment <liczba_komorek_pamieci> do buffer2
 		k = atoi(buffer2);
-		memset(buffer2, 0, (MAX_LABEL_LENGTH + 1) * sizeof(char));
+		memset(buffer2, 0, 11 * sizeof(char));
 
-
-		if (strcmp(divSign, "DC") == 0)		// OBSLUGA DYREKTYW POSTACI: <etykieta> DC <liczba_komorek_pamieci>*INTEGER(<liczba_calkowita>)
+		if (strcmp(divSign, "DC") == 0)
 		{
-			if (strchr(divArgs, 41) == NULL) exit(9);				// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+			if (strncmp(temp1 + 1, "INTEGER", N) != 0) exit(9);
 
-			strncat(buffer2, temp1 + N + 2, strlen(temp1) - N - 3);	// wycina fragment <liczba_calkowita> do buffer2
-
-			for (i = 0; i < k; i++)
+			if (*(temp1 + N + 1) == '\0')		// OBSLUGA DYREKTYW POSTACI: <etykieta> DC <liczba_komorek_pamieci>*INTEGER
 			{
-				hex = intoHex(buffer2, 8);
-				storeInDataSection(hex);
-				free(hex);
+				srand((unsigned int)time(0));
+				for (i = 0; i < k; i++)
+				{
+					random = rand() % 101;								// wygenerowanie losowej liczby z przedzialu 0 - 100
+					sprintf(buffer2, "%08X", random);
+					storeInDataSection(buffer2);
+					memset(buffer2, 0, 11 * sizeof(char));
+				}
+			}
+
+			else if (*(temp1 + N + 1) == '(')	// OBSLUGA DYREKTYW POSTACI: <etykieta> DC <liczba_komorek_pamieci>*INTEGER(<liczba_calkowita>)
+			{
+				if (strchr(divArgs, 41) == NULL) exit(9);				// jesli nie domknieto nawiasu przy podawaniu argumentu przerwij program z kodem 1
+
+				strncat(buffer2, temp1 + N + 2, strlen(temp1) - N - 3);	// wycina fragment <liczba_calkowita> do buffer2
+
+				for (i = 0; i < k; i++)
+				{
+					hex = intoHex(buffer2, 8);
+					storeInDataSection(hex);
+					free(hex);
+				}
+			}
+
+			else								// blad w skladni
+			{
+				exit(9);
 			}
 		}
 
-		else								// OBSLUGA DYREKTYW POSTACI: <etykieta> DS <liczba_komorek_pamieci>*INTEGER
+		else if (strcmp(divSign, "DS") == 0)// OBSLUGA DYREKTYW POSTACI: <etykieta> DS <liczba_komorek_pamieci>*INTEGER
 		{
+			if (strcmp(temp1 + 1, "INTEGER") != 0) exit(9);
+
 			for (i = 0; i < k; i++)
 			{
 				storeInDataSection(emptyWord8);
 			}
+		}
+
+		else								// blad w skladni
+		{
+			exit(9);
 		}
 	}
 }
@@ -130,10 +169,10 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 	*/
 	char buffer[MAX_CODE_LENGTH + 1];
 	/**
-	* buffer2 to bufor roboczy uzywany tam, gdzie wczytywany do niego string nie wymaga wiecej niz MAX_LABEL_LENGTH (10) znakow.
+	* buffer2 to bufor roboczy uzywany tam, gdzie wczytywany do niego string nie wymaga wiecej niz 10 znakow.
 	* Wykorzystuje go przede wszystkim, aby wyciac odpowiedni krotszy napis z dluzszego napisu.
 	*/
-	char buffer2[MAX_LABEL_LENGTH + 1];
+	char buffer2[11];
 	char* hex, * temp1, * temp2;
 	struct labelledCommand* ptr;
 
@@ -161,7 +200,7 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 		hex = intoHex(buffer2, 1);
 		strcat(buffer, hex);								// zapis wyodrebnionego rejestru nr 1 do buffer
 		free(hex);
-		memset(buffer2, 0, (MAX_LABEL_LENGTH + 1) * sizeof(char));
+		memset(buffer2, 0, 11 * sizeof(char));
 
 		temp2++;
 		for (i = 0; *temp2 != '\0' && *temp2 != '('; i++)	// wyodrêbnienie do buffer2: drugiego REJESTRU ( format rejestr,REJESTR ),
@@ -191,7 +230,7 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 				if (temp1 == NULL) exit(10);
 
 				strcpy(temp1, buffer2);						// temp1 wskazuje na wyodrebnione z rozkazu PRZESUNIECIE
-				memset(buffer2, 0, (MAX_LABEL_LENGTH + 1) * sizeof(char));
+				memset(buffer2, 0, 11 * sizeof(char));
 
 				temp2++;
 				for (i = 0; isdigit(*temp2); i++)			// wyodrebnienie NR_REJESTRU do buffer2
@@ -258,7 +297,7 @@ void interpretOrd(char ordLabel[], char* ordSign, char* ordArgs)
 				saveLabelAsAddress(ordLabel, 14, (unsigned short)strlen((char*)getFromRegistry(14)) / 2, "");
 
 			strcpy(temp1, buffer2);							// temp1 wskazuje na wyodrebnione z rozkazu PRZESUNIECIE
-			memset(buffer2, 0, (MAX_LABEL_LENGTH + 1) * sizeof(char));
+			memset(buffer2, 0, 11 * sizeof(char));
 
 			temp2++;
 			for (i = 0; isdigit(*temp2); i++)				// wyodrebnienie NR_REJESTRU do buffer2

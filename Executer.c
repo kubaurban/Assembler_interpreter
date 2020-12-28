@@ -236,6 +236,11 @@ char* getEffectiveAddress(int reg, char* adr)
 	strncpy(temp, adr, 4);
 	bias = 2 * (unsigned short)unsignIntoDec(16, temp);
 
+	if (bias >= strlen((char*)getFromRegistry(reg)))
+	{
+		exit(9);
+	}
+
 	return (char*)getFromRegistry(reg) + bias;
 }
 void decIntoBinary(char bin[], unsigned long int number) //format 32 bitowy

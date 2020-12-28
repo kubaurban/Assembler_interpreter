@@ -3,10 +3,10 @@
 #include "interpreter.h"
 
 
-FILE* getInput(FILE* inputf, char* source, int argc, char* argv[])
+FILE* getInput(FILE* fp, char* source, int argc, char* argv[])
 {
 	char temp[MAX_LINE_LENGTH + 1];
-	char* token1, * token2, * line;
+	char* token1, * token2, * line, * t;
 
 	if (argc < 2)						// nie podano sciezki wzglednej do pliku z instrukcjami pseudoasemblera (brak argumentów)
 	{
@@ -17,43 +17,57 @@ FILE* getInput(FILE* inputf, char* source, int argc, char* argv[])
 			token1 = strtok(temp, " \r\n\t");
 		}
 
-		inputf = fopen(token1, "r");
+		fp = fopen(token1, "r");
 		strncpy(source, token1, strlen(token1) - 4);	// wycina nazwe pliku zrodlowego bez .txt
+		source[strlen(token1) - 4] = '\0';
 		token1 = strtok(NULL, " \r\n\t");			// wycina drugi argument (o ile zostal podany, jesli nie, pozostaje NULLem)
 	}
 	else
 	{
-		inputf = fopen(argv[1], "r");	// wskazanie na plik tekstowy z instrukcjami pseudoasemblera podany jako argument przy wywolaniu programu
+		fp = fopen(argv[1], "r");	// wskazanie na plik tekstowy z instrukcjami pseudoasemblera podany jako argument przy wywolaniu programu
 		strncpy(source, argv[1], strlen(argv[1]) - 4); // wycina nazwe pliku zrodlowego bez .txt
+		source[strlen(argv[1]) - 4] = '\0';
 		token1 = NULL;
 		if (argc == 3)
 			token1 = argv[2];
 	}
 
-	while (inputf == NULL) {
+	while (fp == NULL) {
 		line = handleFileOpenError();
 		token2 = strtok(line, " \r\n\t");
-		inputf = fopen(token2, "r");
+		fp = fopen(token2, "r");
 		strncpy(source, token2, strlen(token2) - 4); // wycina nazwe pliku zrodlowego bez .txt
+		source[strlen(token2) - 4] = '\0';
 		free(line);
 	}
 
 
 	if (token1 == NULL || strcmp(token1, "psa_code") == 0)
 	{
-		readPAInstructions(inputf);
+		readPAInstructions(fp);
+		fclose(fp);
+
+		t = calloc(strlen(source) + 8, sizeof(char));
+		if (t == NULL) exit(10);
+		strcpy(t, source);
+
+		strcat(t, "_machine.txt");
+		fp = fopen(t, "w");
+		saveDataSection(fp);
+		saveDirectiveSection(fp);
 	}
 	else if(strcmp(token1, "msck_code") == 0)
 	{
-		readMachineCode(inputf);
+		readMachineCode(fp);
 	}
 	else
 	{
 		printf("B³êdny format");
 		exit(1);
 	}
+	fclose(fp);
 
-	return inputf;
+	return fp;
 }
 void readPAInstructions(FILE* inputf)
 {
